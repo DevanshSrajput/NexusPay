@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 class QueryRequest(BaseModel):
     query: str = Field(..., min_length=5, max_length=500)
     max_spend: float = Field(default=0.05, ge=0.0, le=10.0)
-    sources: Optional[list[str]] = None  # force specific sources
+    sources: Optional[list[str]] = None
 
 
 class SourceUsed(BaseModel):
@@ -25,11 +25,11 @@ class QueryResponse(BaseModel):
     total_cost_usdc: float
     query_id: str
     reasoning: str
-    status: str  # "complete" | "partial" | "failed"
+    status: str
 
 
 class BudgetError(BaseModel):
-    error: str  # "budget_exceeded" | "query_cap_exceeded"
+    error: str
     message: str
     daily_spent: float
     daily_cap: float

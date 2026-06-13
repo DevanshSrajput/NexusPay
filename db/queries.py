@@ -1,5 +1,3 @@
-"""Database operations for spend logs and queries."""
-
 from typing import Any, Optional
 
 from db.database import get_connection
@@ -16,7 +14,6 @@ async def log_spend(
     data_preview: Optional[str] = None,
     quality_rating: Optional[float] = None,
 ) -> int:
-    """Insert a single payment attempt. Returns the new row id."""
     conn = await get_connection()
     try:
         cursor = await conn.execute(
@@ -45,7 +42,6 @@ async def log_spend(
 
 
 async def get_daily_total() -> float:
-    """Sum of successful spend for the current UTC day."""
     conn = await get_connection()
     try:
         cursor = await conn.execute(
@@ -63,7 +59,6 @@ async def get_daily_total() -> float:
 
 
 async def get_all_logs(limit: int = 100) -> list[dict[str, Any]]:
-    """All spend logs, newest first."""
     conn = await get_connection()
     try:
         cursor = await conn.execute(
@@ -77,7 +72,6 @@ async def get_all_logs(limit: int = 100) -> list[dict[str, Any]]:
 
 
 async def get_logs_by_query(query_id: str) -> list[dict[str, Any]]:
-    """All spend logs for one query, oldest first."""
     conn = await get_connection()
     try:
         cursor = await conn.execute(
@@ -91,7 +85,6 @@ async def get_logs_by_query(query_id: str) -> list[dict[str, Any]]:
 
 
 async def count_queries_today() -> int:
-    """Number of queries created in the current UTC day."""
     conn = await get_connection()
     try:
         cursor = await conn.execute(
@@ -107,7 +100,6 @@ async def count_queries_today() -> int:
 
 
 async def create_query(query_id: str, query_text: str, max_spend: float) -> None:
-    """Record a new top-level query in 'pending' status."""
     conn = await get_connection()
     try:
         await conn.execute(
@@ -119,24 +111,16 @@ async def create_query(query_id: str, query_text: str, max_spend: float) -> None
         await conn.close()
 
 
-# Columns on the `queries` table that update_query is allowed to write.
 _UPDATABLE_QUERY_COLUMNS = frozenset({
     "status", "max_spend", "estimated_cost", "actual_cost",
     "sources_planned", "sources_used", "planner_reasoning",
     "final_answer", "error_message", "completed_at",
 })
 
-# Statuses that mark a query as finished (set completed_at automatically).
 _TERMINAL_STATUSES = {"complete", "partial", "failed"}
 
 
 async def update_query(query_id: str, **fields: Any) -> None:
-    """Update whitelisted columns on a query row.
-
-    Only columns in ``_UPDATABLE_QUERY_COLUMNS`` may be written, which prevents
-    arbitrary/injected identifiers from reaching the SQL string. ``completed_at``
-    is set automatically when status becomes terminal.
-    """
     if not fields:
         return
 
@@ -145,18 +129,18 @@ async def update_query(query_id: str, **fields: Any) -> None:
         raise ValueError(f"update_query received unknown column(s): {sorted(unknown)}")
 
     if fields.get("status") in _TERMINAL_STATUSES and "completed_at" not in fields:
-        fields["completed_at"] = None  # placeholder, set via SQL below
+        fields["completed_at"] = None
 
     assignments = []
     values: list[Any] = []
     for key, val in fields.items():
-        if key == "completed_at" and val is None and fields.get("status") in _TERMINAL_STATUSES:
-            assignments.append("completed_at = datetime('now', 'utc')")
-            continue
-        assignments.append(f"{key} = ?")
-        values.append(val)
-    values.append(query_id)
+        if key == "completed_at" and val is None:
+            assignments.append(f"{key} = datetime('now', 'utc')")
+        else:
+            assignments.append(f"{key} = ?")
+            values.append(val)
 
+    values.append(query_id)
     conn = await get_connection()
     try:
         await conn.execute(

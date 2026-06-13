@@ -30,10 +30,7 @@ class BudgetManager:
             settings.per_query_cap_usdc if per_query_cap is None else per_query_cap
         )
 
-    # --- pure, synchronous checks (easy to test) ---------------------------
-
     def check_query_cap(self, estimated_cost: float, max_spend: float) -> BudgetDecision:
-        """Validate a plan's estimated cost against the per-query and request caps."""
         effective_cap = min(self.per_query_cap, max_spend)
         if estimated_cost > effective_cap + 1e-9:
             return BudgetDecision(
@@ -44,7 +41,6 @@ class BudgetManager:
         return BudgetDecision(True)
 
     def fits_daily(self, current_spent: float, additional_cost: float) -> BudgetDecision:
-        """Check whether one more charge fits under the daily cap."""
         if current_spent + additional_cost > self.daily_cap + 1e-9:
             return BudgetDecision(
                 False,
@@ -55,8 +51,6 @@ class BudgetManager:
 
     def remaining(self, current_spent: float) -> float:
         return max(0.0, self.daily_cap - current_spent)
-
-    # --- async wrappers backed by the database -----------------------------
 
     async def daily_spent(self) -> float:
         return await get_daily_total()

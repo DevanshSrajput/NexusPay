@@ -1,6 +1,6 @@
 """x402 payment client.
 
-Implements the pay-per-call flow described in the App Flow doc:
+Implements the pay-per-call flow:
 
     GET url -> 402 + terms -> validate price -> sign -> retry with X-PAYMENT -> 200 + data
 
@@ -8,10 +8,6 @@ Two modes:
   * live  (mock_payments=False): signs an EIP-3009 authorization with the wallet.
   * mock  (mock_payments=True) : builds a simulated payment payload the local
     middleware accepts, so the demo runs without funded testnet USDC.
-
-The X-PAYMENT wire format here is a base64-encoded JSON envelope that mirrors
-the shape of a real x402 payment header. The matching verification lives in
-``data_servers/middleware.py``.
 """
 
 import base64
@@ -32,7 +28,6 @@ _TIMEOUT = httpx.Timeout(15.0)
 
 
 def _parse_terms(response: httpx.Response) -> Optional[PaymentTerms]:
-    """Extract payment terms from a 402 response body (x402 'accepts' shape)."""
     try:
         body = response.json()
     except Exception:
@@ -55,13 +50,11 @@ def _parse_terms(response: httpx.Response) -> Optional[PaymentTerms]:
 
 
 def _build_payment_header(terms: PaymentTerms, resource: str) -> str:
-    """Create a base64 X-PAYMENT envelope for the given terms."""
     nonce = "0x" + secrets.token_hex(32)
 
     if settings.mock_payments or not wallet.is_ready():
         signature = "0xmock" + secrets.token_hex(32)
     else:
-        # Live mode: sign a digest binding payer, payee, amount and nonce.
         digest = hashlib.sha256(
             f"{wallet.address}|{terms.pay_to}|{terms.price_usdc}|{nonce}".encode()
         ).digest()
@@ -87,18 +80,12 @@ def _build_payment_header(terms: PaymentTerms, resource: str) -> str:
 
 
 async def pay_for_resource(url: str, max_amount: float) -> PaymentResult:
-    """Fetch ``url``, paying via x402 if a 402 is returned.
-
-    ``max_amount`` is the per-call ceiling; if the server asks for more, the
-    call is refused before any payment is signed.
-    """
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
         try:
             initial = await client.get(url)
         except httpx.HTTPError as exc:
             return PaymentResult(False, url, 0.0, error=f"request_failed: {exc}")
 
-        # Resource was free / already accessible.
         if initial.status_code == 200:
             return PaymentResult(
                 True, url, 0.0, txn_hash=None, data=_safe_json(initial)

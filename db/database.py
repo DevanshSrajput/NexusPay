@@ -43,14 +43,12 @@ CREATE INDEX IF NOT EXISTS idx_queries_status ON queries (status);
 
 
 async def get_connection() -> aiosqlite.Connection:
-    """Open a new connection with row access by column name."""
     conn = await aiosqlite.connect(settings.db_path)
     conn.row_factory = aiosqlite.Row
     return conn
 
 
 async def init_db() -> None:
-    """Create tables and indexes if they do not exist. Call once on startup."""
     async with aiosqlite.connect(settings.db_path) as conn:
         await conn.executescript(SCHEMA)
         await conn.commit()

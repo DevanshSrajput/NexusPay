@@ -1,10 +1,7 @@
 """x402 server-side payment enforcement for the mock data servers.
 
-Responsibilities:
-  * Build a 402 response advertising payment terms when no X-PAYMENT header.
-  * Verify a supplied X-PAYMENT header (mock: decode + check amount/asset;
-    live: delegate to the configured facilitator) and mint a txn hash.
-
+Builds 402 responses advertising payment terms and verifies X-PAYMENT headers
+(mock: decode + check amount/asset; live: delegate to the configured facilitator).
 The wire format mirrors ``payment/client.py``.
 """
 
@@ -32,7 +29,6 @@ class VerifyResult:
 
 
 def payment_required_response(resource: str, price_usdc: float) -> JSONResponse:
-    """402 response advertising what the caller must pay."""
     body = {
         "x402Version": X402_VERSION,
         "error": "payment required",
@@ -57,7 +53,6 @@ def _mint_txn_hash(nonce: str, resource: str) -> str:
 
 
 async def _verify_live(header_value: str) -> VerifyResult:
-    """Delegate verification to the configured x402 facilitator."""
     url = settings.facilitator_url.rstrip("/") + "/verify"
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as client:
@@ -74,7 +69,6 @@ async def _verify_live(header_value: str) -> VerifyResult:
 
 
 def _verify_mock(header_value: str, resource: str, price_usdc: float) -> VerifyResult:
-    """Decode the simulated envelope and sanity-check it."""
     try:
         envelope = json.loads(base64.b64decode(header_value))
     except Exception:
@@ -100,7 +94,6 @@ def _verify_mock(header_value: str, resource: str, price_usdc: float) -> VerifyR
 async def verify_payment(
     request: Request, resource: str, price_usdc: float
 ) -> VerifyResult:
-    """Verify the X-PAYMENT header on a request, if present."""
     header_value = request.headers.get("X-PAYMENT")
     if not header_value:
         return VerifyResult(False, error="no_payment_header")

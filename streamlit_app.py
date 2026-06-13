@@ -2,8 +2,6 @@
 
 A single-process UI that runs the mock data server in a background thread and
 drives the agent pipeline in-process, so it works locally and on Streamlit Cloud.
-
-Run locally:   streamlit run streamlit_app.py
 """
 
 import asyncio
@@ -14,8 +12,8 @@ import time
 
 import streamlit as st
 
-# ── Bridge Streamlit Cloud secrets into the environment BEFORE settings load ──
-try:  # st.secrets raises if no secrets file is present (e.g. pure local .env)
+# Bridge Streamlit Cloud secrets into environment before settings loads
+try:
     for _k in (
         "GEMINI_API_KEY", "GEMINI_MODEL", "MOCK_PAYMENTS",
         "DAILY_CAP_USDC", "PER_QUERY_CAP_USDC", "AGENT_PRIVATE_KEY",
@@ -37,12 +35,7 @@ from agent.pipeline import (  # noqa: E402
 from payment.wallet import wallet  # noqa: E402
 
 
-# ──────────────────────────────────────────────────────────────────────────
-# Infrastructure: background data server + async runner
-# ──────────────────────────────────────────────────────────────────────────
-
 def _run_async(coro):
-    """Run a coroutine to completion in a fresh event loop."""
     loop = asyncio.new_event_loop()
     try:
         return loop.run_until_complete(coro)
@@ -52,14 +45,14 @@ def _run_async(coro):
 
 @st.cache_resource(show_spinner=False)
 def bootstrap() -> bool:
-    """Start the mock data server in a daemon thread and init the DB (once)."""
+    """Start mock data server in a daemon thread and init the DB once."""
     import uvicorn
     import httpx
     from data_servers.server import app as data_app
 
     base = f"http://127.0.0.1:{settings.data_server_port}/health"
 
-    # If a data server is already up (e.g. hot reload), reuse it.
+    # Reuse if already running (e.g. hot reload)
     already_up = False
     try:
         already_up = httpx.get(base, timeout=0.5).status_code == 200
@@ -74,7 +67,6 @@ def bootstrap() -> bool:
         server = uvicorn.Server(config)
         threading.Thread(target=server.run, daemon=True).start()
 
-        # Wait for the server to accept connections.
         for _ in range(50):
             try:
                 if httpx.get(base, timeout=0.5).status_code == 200:
@@ -85,10 +77,6 @@ def bootstrap() -> bool:
     _run_async(init_db())
     return True
 
-
-# ──────────────────────────────────────────────────────────────────────────
-# Theme / CSS  (Dark Mode OLED · Fira Code/Sans · green accent · subtle glow)
-# ──────────────────────────────────────────────────────────────────────────
 
 CSS = """
 <style>
@@ -122,7 +110,6 @@ code, .mono, .np-txn, .np-num{ font-family:'Fira Code',monospace; font-variant-n
   *{ animation:none !important; transition:none !important; }
 }
 
-/* Hero */
 .np-hero{ position:relative; border:1px solid var(--border); border-radius:20px;
   padding:26px 28px; margin-bottom:18px; overflow:hidden;
   background:linear-gradient(135deg, rgba(30,41,59,.9), rgba(15,23,42,.6));
@@ -143,7 +130,6 @@ code, .mono, .np-txn, .np-num{ font-family:'Fira Code',monospace; font-variant-n
   box-shadow:0 0 8px var(--accent); animation:npPulse 1.8s ease-in-out infinite; }
 .np-dot.amber{ background:var(--warn); box-shadow:0 0 8px var(--warn); }
 
-/* Cards */
 .np-card{ background:linear-gradient(180deg,var(--surface),var(--surface-2));
   border:1px solid var(--border); border-radius:16px; padding:18px 20px; margin:10px 0;
   animation:npFadeUp .45s ease-out both; }
@@ -152,7 +138,6 @@ code, .mono, .np-txn, .np-num{ font-family:'Fira Code',monospace; font-variant-n
   text-transform:uppercase; color:var(--fg-dim); margin-bottom:8px; }
 .np-answer{ font-size:16px; line-height:1.7; color:var(--fg); white-space:pre-wrap; }
 
-/* Source / payment cards */
 .np-src{ display:flex; align-items:center; gap:14px; padding:14px 16px; margin:9px 0;
   border:1px solid var(--border); border-left:4px solid var(--border-2); border-radius:13px;
   background:rgba(23,32,51,.8); animation:npFadeUp .4s ease-out both; }
@@ -170,7 +155,6 @@ code, .mono, .np-txn, .np-num{ font-family:'Fira Code',monospace; font-variant-n
 .np-cost{ font-family:'Fira Code',monospace; font-weight:600; color:var(--accent); font-size:14px; }
 .np-cost.zero{ color:var(--fg-dim); }
 
-/* Stepper */
 .np-step{ display:flex; align-items:center; gap:10px; font-family:'Fira Code',monospace;
   font-size:12.5px; color:var(--fg-dim); padding:5px 0; animation:npFadeUp .35s ease-out both; }
 .np-step .s{ width:22px; height:22px; border-radius:50%; flex:none; display:grid; place-items:center;
@@ -180,7 +164,6 @@ code, .mono, .np-txn, .np-num{ font-family:'Fira Code',monospace; font-variant-n
 .np-spin{ width:13px; height:13px; border:2px solid var(--border-2); border-top-color:var(--accent);
   border-radius:50%; animation:npSpin .7s linear infinite; }
 
-/* Gauge */
 .np-gauge-track{ height:10px; border-radius:999px; background:var(--muted);
   overflow:hidden; border:1px solid var(--border); }
 .np-gauge-fill{ height:100%; border-radius:999px;
@@ -190,7 +173,6 @@ code, .mono, .np-txn, .np-num{ font-family:'Fira Code',monospace; font-variant-n
 .np-stat .v{ font-size:22px; font-weight:700; color:var(--fg); }
 .np-stat .l{ font-size:11px; color:var(--fg-dim); text-transform:uppercase; letter-spacing:1px; }
 
-/* Native widget theming */
 .stTextArea textarea{ background:var(--surface-2) !important; color:var(--fg) !important;
   border:1px solid var(--border) !important; border-radius:13px !important;
   font-family:'Fira Sans',sans-serif !important; font-size:15px !important; }
@@ -210,7 +192,6 @@ button[kind="primary"]:hover{ box-shadow:0 0 22px rgba(34,197,94,.45) !important
   background:var(--surface) !important; color:var(--fg) !important; transition:all .2s ease !important; }
 [data-testid="stLinkButton"] a:hover{ border-color:var(--accent) !important; transform:translateY(-1px);
   box-shadow:0 6px 18px rgba(0,0,0,.35) !important; }
-/* Segmented, clearly-visible section switcher */
 .stTabs [data-baseweb="tab-list"]{ gap:10px; border-bottom:none !important;
   background:var(--surface-2); border:1px solid var(--border); border-radius:14px;
   padding:6px; margin-bottom:6px; }
@@ -255,10 +236,6 @@ def icon(name: str) -> str:
             f'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">{paths[name]}</svg>')
 
 
-# ──────────────────────────────────────────────────────────────────────────
-# App
-# ──────────────────────────────────────────────────────────────────────────
-
 st.set_page_config(page_title="NexusPay", page_icon="🛰️", layout="wide")
 st.markdown(CSS, unsafe_allow_html=True)
 bootstrap()
@@ -271,26 +248,24 @@ if "query_input" not in st.session_state:
 snap = _run_async(budget_snapshot())
 key_set = bool(settings.gemini_api_key)
 
-# ── Hero ──
-short_wallet = wallet.address[:6] + "…" + wallet.address[-4:]
-pay_label = "MOCK · free" if settings.mock_payments else "LIVE · testnet"
+short_wallet = wallet.address[:6] + "..." + wallet.address[-4:]
+pay_label = "MOCK \u00b7 free" if settings.mock_payments else "LIVE \u00b7 testnet"
 pay_dot = "" if settings.mock_payments else " amber"
-llm_label = f"Gemini · {esc(settings.gemini_model)}" if key_set else "Keyword fallback"
+llm_label = f"Gemini \u00b7 {esc(settings.gemini_model)}" if key_set else "Keyword fallback"
 st.markdown(f"""
 <div class="np-hero">
   <div class="np-header-row">
     <div class="np-brand">{LOGO_SVG}</div>
     <div class="np-chips" style="margin-top:0;">
       <span class="np-pill"><span class="np-dot{pay_dot}"></span> {pay_label}</span>
-      <span class="np-pill">LLM · {llm_label}</span>
-      <span class="np-pill">wallet · {esc(short_wallet)}</span>
-      <span class="np-pill">net · {esc(settings.network)}</span>
+      <span class="np-pill">LLM \u00b7 {llm_label}</span>
+      <span class="np-pill">wallet \u00b7 {esc(short_wallet)}</span>
+      <span class="np-pill">net \u00b7 {esc(settings.network)}</span>
     </div>
   </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Sidebar: Mission Control ──
 with st.sidebar:
     st.markdown('<div class="np-eyebrow">Mission Control</div>', unsafe_allow_html=True)
     pct = 0 if snap.daily_cap <= 0 else min(100, snap.spent_today / snap.daily_cap * 100)
@@ -338,12 +313,10 @@ examples = [
 
 
 def _use_example(text: str) -> None:
-    # Runs as an on_click callback, before the text area is instantiated this
-    # run, so writing to the widget-keyed state is allowed here.
+    """on_click callback — must run before the widget is instantiated this frame."""
     st.session_state.query_input = text
 
 
-# ── Tabs ──
 tab_app, tab_about = st.tabs(["Control center", "About"])
 
 with tab_app:
@@ -357,7 +330,8 @@ with tab_app:
         col.button(ex, key=f"ex_{ex[:12]}", width="stretch",
                    on_click=_use_example, args=(ex,))
 
-    run = st.button("◢  Run agent", type="primary", width="stretch")
+    run = st.button("\u25e2  Run agent", type="primary", width="stretch")
+
 
 def _steps(active: int, labels) -> str:
     rows = []
@@ -383,10 +357,10 @@ def run_pipeline(q: str, max_spend: float, forced) -> None:
         stepper.empty()
         st.markdown(f"""
         <div class="np-card" style="border-color:var(--danger);">
-          <div class="np-eyebrow" style="color:var(--danger);">budget guard · {esc(e.error)}</div>
+          <div class="np-eyebrow" style="color:var(--danger);">budget guard \u00b7 {esc(e.error)}</div>
           <div style="color:var(--fg); font-size:15px;">{esc(e.message)}</div>
           <div class="mono" style="color:var(--fg-dim); font-size:12px; margin-top:8px;">
-            spent ${e.daily_spent:.4f} / cap ${e.daily_cap:.2f} · ${e.remaining:.4f} remaining</div>
+            spent ${e.daily_spent:.4f} / cap ${e.daily_cap:.2f} \u00b7 ${e.remaining:.4f} remaining</div>
         </div>""", unsafe_allow_html=True)
         return
 
@@ -396,11 +370,11 @@ def run_pipeline(q: str, max_spend: float, forced) -> None:
 
     chosen = " ".join(
         f'<span class="np-pill" style="color:var(--fg);"><span class="np-dot"></span>{esc(sid)} '
-        f'· ${registry.get_by_id(sid).price_usdc:.3f}</span>'
+        f'\u00b7 ${registry.get_by_id(sid).price_usdc:.3f}</span>'
         for sid in plan.sources if registry.get_by_id(sid))
     st.markdown(f"""
     <div class="np-card glow">
-      <div class="np-eyebrow">Plan · estimated ${plan.estimated_cost:.4f}</div>
+      <div class="np-eyebrow">Plan \u00b7 estimated ${plan.estimated_cost:.4f}</div>
       <div style="color:var(--fg); line-height:1.6; margin-bottom:10px;">{esc(plan.reasoning)}</div>
       <div class="np-chips">{chosen}</div>
     </div>""", unsafe_allow_html=True)
@@ -416,7 +390,7 @@ def run_pipeline(q: str, max_spend: float, forced) -> None:
             txn = f'txn {esc(r.txn_hash)}' if r.txn_hash else "delivered"
         elif r.error and r.error.startswith("skipped_budget"):
             cls, ic = "skip", "skip"
-            txn = "skipped · budget guard"
+            txn = "skipped \u00b7 budget guard"
         else:
             cls, ic = "fail", "x"
             txn = esc((r.error or "failed")[:60])
@@ -442,7 +416,7 @@ def run_pipeline(q: str, max_spend: float, forced) -> None:
     st.markdown(f"""
     <div class="np-card glow">
       <div class="np-eyebrow" style="color:{status_color};">
-        Answer · {esc(status)} · total ${outcome.total_cost:.4f} · confidence {esc(synthesis.confidence)}</div>
+        Answer \u00b7 {esc(status)} \u00b7 total ${outcome.total_cost:.4f} \u00b7 confidence {esc(synthesis.confidence)}</div>
       <div class="np-answer">{esc(synthesis.answer)}</div>
     </div>""", unsafe_allow_html=True)
 
@@ -453,11 +427,10 @@ def run_pipeline(q: str, max_spend: float, forced) -> None:
 
 
 with tab_app:
-    # ── Run pipeline ──
     if run and query.strip():
         try:
             run_pipeline(query.strip(), max_spend, forced)
-        except Exception as exc:  # never surface a raw traceback to the user
+        except Exception as exc:
             st.markdown(f"""
             <div class="np-card" style="border-color:var(--danger);">
               <div class="np-eyebrow" style="color:var(--danger);">something went wrong</div>
@@ -467,7 +440,6 @@ with tab_app:
                 {esc(type(exc).__name__)}: {esc(str(exc)[:160])}</div>
             </div>""", unsafe_allow_html=True)
 
-    # ── Activity log ──
     st.markdown("<hr>", unsafe_allow_html=True)
     col_a, col_b = st.columns([3, 2])
 
@@ -478,13 +450,13 @@ with tab_app:
             rows = [{
                 "endpoint": r["endpoint"],
                 "cost": f'${r["cost_usdc"]:.3f}',
-                "ok": "✓" if r["success"] else "✗",
-                "txn": (r["txn_hash"] or "—")[:16] + ("…" if r["txn_hash"] else ""),
+                "ok": "\u2713" if r["success"] else "\u2717",
+                "txn": (r["txn_hash"] or "\u2014")[:16] + ("\u2026" if r["txn_hash"] else ""),
                 "time": r["created_at"][11:19],
             } for r in logs]
             st.dataframe(rows, width="stretch", hide_index=True)
         else:
-            st.markdown('<div class="np-card" style="color:var(--fg-dim);">No spend yet — run a query above.</div>',
+            st.markdown('<div class="np-card" style="color:var(--fg-dim);">No spend yet \u2014 run a query above.</div>',
                         unsafe_allow_html=True)
 
     with col_b:
@@ -510,40 +482,40 @@ with tab_about:
         answer — all inside a strict budget, with every payment logged for audit.
       </div>
       <div class="np-tag" style="margin-top:12px;">Payments run in mock mode: the full
-        402 &rarr; pay &rarr; verify handshake is simulated locally, so nothing costs real money.</div>
+        402 \u2192 pay \u2192 verify handshake is simulated locally, so nothing costs real money.</div>
     </div>
 
     <div class="np-card">
-      <div class="np-eyebrow">What it does &middot; the flow</div>
+      <div class="np-eyebrow">What it does \u00b7 the flow</div>
       <div class="np-chips">
-        <span class="np-pill"><span class="np-dot"></span>1 &middot; Plan &mdash; LLM picks sources</span>
-        <span class="np-pill"><span class="np-dot"></span>2 &middot; Budget &mdash; caps enforced first</span>
-        <span class="np-pill"><span class="np-dot"></span>3 &middot; Pay &mdash; x402 per call</span>
-        <span class="np-pill"><span class="np-dot"></span>4 &middot; Synthesize &mdash; one answer</span>
+        <span class="np-pill"><span class="np-dot"></span>1 \u00b7 Plan \u2014 LLM picks sources</span>
+        <span class="np-pill"><span class="np-dot"></span>2 \u00b7 Budget \u2014 caps enforced first</span>
+        <span class="np-pill"><span class="np-dot"></span>3 \u00b7 Pay \u2014 x402 per call</span>
+        <span class="np-pill"><span class="np-dot"></span>4 \u00b7 Synthesize \u2014 one answer</span>
       </div>
     </div>
 
     <div class="np-card">
       <div class="np-eyebrow">Reading the interface</div>
       <ul style="color:var(--fg); line-height:1.9; margin:0; padding-left:18px;">
-        <li><b>Mission Control</b> (left sidebar) &mdash; the budget gauge shows today's spend against
+        <li><b>Mission Control</b> (left sidebar) \u2014 the budget gauge shows today's spend against
             the daily cap (it turns red past 80%). Spend controls set the max spend for a query and can
             force specific sources. The catalog lists every source and its price.</li>
-        <li><b>Ask the agent</b> &mdash; type a question or tap an example chip, then <b>Run agent</b>.</li>
-        <li><b>Pipeline stepper</b> &mdash; the live stages: planning &rarr; budget &rarr; paying &rarr; synthesizing.</li>
-        <li><b>x402 settlements</b> &mdash; one card per source.
+        <li><b>Ask the agent</b> \u2014 type a question or tap an example chip, then <b>Run agent</b>.</li>
+        <li><b>Pipeline stepper</b> \u2014 the live stages: planning \u2192 budget \u2192 paying \u2192 synthesizing.</li>
+        <li><b>x402 settlements</b> \u2014 one card per source.
             <span style="color:var(--accent);">Green</span> = paid (with its txn hash),
             <span style="color:var(--warn);">amber</span> = skipped by the budget guard,
             <span style="color:var(--danger);">red</span> = payment failed.</li>
-        <li><b>Answer</b> &mdash; the synthesized response with its status and total cost.</li>
-        <li><b>Spend log &amp; session stats</b> &mdash; every settlement and your running session total.</li>
+        <li><b>Answer</b> \u2014 the synthesized response with its status and total cost.</li>
+        <li><b>Spend log &amp; session stats</b> \u2014 every settlement and your running session total.</li>
       </ul>
     </div>
 
     <div class="np-card">
       <div class="np-eyebrow">Built by</div>
       <div style="font-size:16px; color:var(--fg);"><b>Devansh Singh</b></div>
-      <div class="np-tag">Open source &middot; contributions and feedback are welcome.</div>
+      <div class="np-tag">Open source \u00b7 contributions and feedback are welcome.</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -551,5 +523,5 @@ with tab_about:
     st.markdown('<div class="np-tag" style="margin-bottom:10px;">Found a bug or have an idea? '
                 'Open the repository and raise an issue.</div>', unsafe_allow_html=True)
     b1, b2 = st.columns(2)
-    b1.link_button("◢  View on GitHub", GITHUB_URL, width="stretch")
+    b1.link_button("\u25e2  View on GitHub", GITHUB_URL, width="stretch")
     b2.link_button("Raise an issue", ISSUES_URL, width="stretch")

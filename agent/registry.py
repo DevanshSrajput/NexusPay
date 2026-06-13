@@ -21,8 +21,6 @@ class DataSource:
 
 
 class SourceRegistry:
-    """In-memory registry loaded from a JSON seed file. Read-only in v1."""
-
     def __init__(self, path: Path = _SOURCES_PATH):
         self._path = path
         self._sources: dict[str, DataSource] = {}
@@ -65,5 +63,4 @@ class SourceRegistry:
         ]
 
 
-# Module-level singleton used across the agent.
 registry = SourceRegistry()

@@ -2,8 +2,6 @@
 
 Wires planner -> budget -> executor -> synthesizer behind a /query endpoint,
 plus observability endpoints for logs, budget and sources.
-
-Run:  uvicorn agent.main:app --port 8000
 """
 
 import secrets
@@ -69,7 +67,6 @@ async def query(req: QueryRequest):
     query_id = f"q_{int(time.time())}_{secrets.token_hex(3)}"
     await create_query(query_id, req.query, req.max_spend)
 
-    # Step 1: per-query cap pre-check on the requested ceiling.
     if req.max_spend > settings.per_query_cap_usdc + 1e-9:
         await update_query(query_id, status="failed", error_message="query_cap_exceeded")
         spent = await budget_manager.daily_spent()
@@ -80,7 +77,6 @@ async def query(req: QueryRequest):
             "query_cap_exceeded",
         )
 
-    # Step 2: LLM planning.
     await update_query(query_id, status="planning")
     try:
         plan = await plan_purchase(query_id, req.query, req.sources)
@@ -92,7 +88,6 @@ async def query(req: QueryRequest):
                      "suggestion": "Retry the query."},
         )
 
-    # Validate estimated cost against caps.
     cap_decision = budget_manager.check_query_cap(plan.estimated_cost, req.max_spend)
     if not cap_decision.allowed:
         await update_query(query_id, status="failed", error_message=cap_decision.reason,
@@ -101,7 +96,6 @@ async def query(req: QueryRequest):
         spent = await budget_manager.daily_spent()
         return _budget_error(spent, cap_decision.reason, "query_cap_exceeded")
 
-    # Step 3: daily budget pre-check.
     daily_decision = await budget_manager.can_afford_daily(plan.estimated_cost)
     if not daily_decision.allowed:
         await update_query(query_id, status="failed", error_message=daily_decision.reason,
@@ -118,7 +112,6 @@ async def query(req: QueryRequest):
         planner_reasoning=plan.reasoning,
     )
 
-    # Step 4: execute purchases.
     outcome = await execute_plan(plan)
 
     sources_used = [
@@ -133,7 +126,6 @@ async def query(req: QueryRequest):
     ]
     successful = [r for r in outcome.results if r.success]
 
-    # Step 5: synthesis.
     await update_query(query_id, status="synthesizing",
                        sources_used=_json([c["source_id"] for c in outcome.collected_data]),
                        actual_cost=outcome.total_cost)
@@ -147,7 +139,6 @@ async def query(req: QueryRequest):
                        final_answer=synthesis.answer,
                        completed_at=None)
 
-    # Step 6: assemble response.
     response = QueryResponse(
         answer=synthesis.answer,
         sources_used=sources_used,
@@ -221,29 +212,23 @@ async def health():
     return {"status": "ok", "wallet": wallet.address}
 
 
-# --- small helpers ---------------------------------------------------------
-
 def _json(value) -> str:
     import json
-
     return json.dumps(value)
 
 
 def _path(url: str) -> str:
     from httpx import URL
-
     return URL(url).path
 
 
 def _preview(result) -> str:
     if result.success and result.data:
         import json
-
         return json.dumps(result.data)[:200]
     return result.error or ""
 
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=settings.agent_port)

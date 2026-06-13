@@ -62,7 +62,6 @@ async def budget_snapshot() -> BudgetSnapshot:
 async def plan_stage(
     query_id: str, query: str, max_spend: float, forced: Optional[list[str]]
 ) -> PlanStage:
-    """Record the query, plan it, and run both budget pre-checks."""
     await create_query(query_id, query, max_spend)
 
     if max_spend > settings.per_query_cap_usdc + 1e-9:

@@ -1,5 +1,3 @@
-"""Unit tests for the budget manager's pure decision logic."""
-
 from agent.budget import BudgetManager
 
 
@@ -21,7 +19,6 @@ def test_query_cap_rejects_over_per_query_cap():
 
 def test_query_cap_respects_lower_request_max_spend():
     bm = make_manager()
-    # per-query cap is 0.05 but the request only allows 0.02
     decision = bm.check_query_cap(estimated_cost=0.03, max_spend=0.02)
     assert not decision.allowed
 

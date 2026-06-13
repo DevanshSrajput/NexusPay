@@ -1,8 +1,3 @@
-"""Application configuration loaded from environment / .env.
-
-Exposes a singleton ``settings`` object that every module imports.
-"""
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,20 +8,18 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # LLM (Google Gemini)
+    # LLM
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.5-flash"
 
-    # x402 wallet (testnet only — never hardcode real keys)
+    # x402 wallet (testnet only)
     agent_private_key: str = ""
     agent_wallet_address: str = ""
 
     # Network
-    network: str = "eip155:84532"  # Base Sepolia
+    network: str = "eip155:84532"
     facilitator_url: str = "https://facilitator.cdp.coinbase.com"
 
-    # When true, the payment layer skips real on-chain signing and simulates
-    # a successful x402 flow. Lets the demo run without a funded testnet wallet.
     mock_payments: bool = True
 
     # Budget caps (testnet USDC)
@@ -38,7 +31,6 @@ class Settings(BaseSettings):
     data_server_port: int = 8001
     data_server_base_url: str = "http://localhost:8001"
 
-    # Address the mock data servers receive payment to
     data_server_pay_to: str = "0x000000000000000000000000000000000000dEaD"
 
     # Database

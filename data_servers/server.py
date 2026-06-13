@@ -3,8 +3,6 @@
 Single FastAPI app hosting three priced endpoints. Each returns 402 with
 payment terms when called without a valid X-PAYMENT header, and the mock data
 payload once payment is verified.
-
-Run:  uvicorn data_servers.server:app --port 8001
 """
 
 import json
@@ -20,7 +18,6 @@ app = FastAPI(title="NexusPay Mock Data Servers")
 
 _DATA_DIR = Path(__file__).resolve().parent / "data"
 
-# resource path -> (data file, price in USDC)
 _ENDPOINTS = {
     "/news/breaking": ("breaking_news.json", 0.001),
     "/articles/deep": ("deep_articles.json", 0.005),
@@ -68,5 +65,4 @@ async def health():
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=settings.data_server_port)

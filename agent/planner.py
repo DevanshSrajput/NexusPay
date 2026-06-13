@@ -35,8 +35,6 @@ Rules:
 
 
 class PlannerOutput(BaseModel):
-    """Validated shape of the LLM's planning response."""
-
     reasoning: str
     sources: list[str]
     estimated_cost: float
@@ -79,7 +77,6 @@ def _recompute_cost(source_ids: list[str]) -> float:
 
 
 def _extract_json(text: str) -> dict:
-    """Pull the first JSON object out of a model response."""
     match = re.search(r"\{.*\}", text, re.DOTALL)
     if not match:
         raise ValueError("no JSON object found in response")
@@ -87,12 +84,6 @@ def _extract_json(text: str) -> dict:
 
 
 def _keyword_fallback(query: str) -> PlannerOutput:
-    """Deterministic source selection used when the LLM is unavailable.
-
-    Tokenizes the query and matches each token against source tags (via the
-    registry's tag index) and data types, preserving the order sources appear
-    in the catalog.
-    """
     tokens = set(re.findall(r"[a-z0-9]+", query.lower()))
     chosen: list[str] = []
     for source in registry.get_all():
@@ -100,7 +91,6 @@ def _keyword_fallback(query: str) -> PlannerOutput:
         if tag_hit or source.data_type in tokens:
             chosen.append(source.id)
     if not chosen:
-        # Default to the cheapest source so the flow still runs.
         cheapest = sorted(registry.get_all(), key=lambda s: s.price_usdc)
         chosen = [cheapest[0].id] if cheapest else []
     return PlannerOutput(
@@ -128,7 +118,7 @@ async def _call_gemini(query: str) -> PlannerOutput:
     )
 
     last_error: Exception | None = None
-    for _ in range(2):  # initial try + one retry
+    for _ in range(2):
         try:
             resp = await client.aio.models.generate_content(
                 model=settings.gemini_model,
@@ -143,10 +133,6 @@ async def _call_gemini(query: str) -> PlannerOutput:
 
 
 async def plan_purchase(query_id: str, query: str, forced_sources: list[str] | None = None) -> PurchasePlan:
-    """Produce a validated purchase plan for the query.
-
-    If ``forced_sources`` is given, those override the LLM selection.
-    """
     if forced_sources:
         valid = [s for s in forced_sources if registry.get_by_id(s)]
         output = PlannerOutput(
@@ -162,7 +148,6 @@ async def plan_purchase(query_id: str, query: str, forced_sources: list[str] | N
     else:
         output = _keyword_fallback(query)
 
-    # Trust our own price math over the model's arithmetic.
     estimated = _recompute_cost(output.sources)
     return PurchasePlan(
         query_id=query_id,

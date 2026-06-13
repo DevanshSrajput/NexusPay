@@ -25,13 +25,12 @@ def _preview(data: dict | None) -> str:
 
 
 async def execute_plan(plan: PurchasePlan) -> ExecutionOutcome:
-    """Pay for each source in order, skipping any that would breach the daily cap."""
     results: list[PaymentResult] = []
     collected: list[dict] = []
     total_cost = 0.0
 
-    # Establish the starting daily spend once; track increments locally so we
-    # don't re-query the DB between every payment.
+    # Track daily spend locally during execution to avoid a DB round-trip
+    # between every payment while keeping each charge's check accurate.
     running_daily = await budget_manager.daily_spent()
 
     for source_id in plan.sources:
@@ -84,5 +83,4 @@ async def execute_plan(plan: PurchasePlan) -> ExecutionOutcome:
 
 def _path(url: str) -> str:
     from httpx import URL
-
     return URL(url).path
