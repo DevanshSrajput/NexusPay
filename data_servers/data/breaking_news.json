@@ -1,0 +1,86 @@
+{
+  "source": "NexusPay Mock News",
+  "fetched_at": "2026-06-13T10:23:11Z",
+  "articles": [
+    {
+      "id": "n001",
+      "title": "Meta releases LLaMA 4 Scout with 10M token context window",
+      "summary": "Meta's latest open source model targets long-document reasoning tasks.",
+      "published_at": "2026-06-13T08:00:00Z",
+      "sentiment_hint": "positive",
+      "tags": ["llm", "open-source", "meta", "ai"]
+    },
+    {
+      "id": "n002",
+      "title": "Mistral AI raises $1B Series C, eyes enterprise market",
+      "summary": "European AI startup targets Fortune 500 clients with on-premise deployment.",
+      "published_at": "2026-06-12T15:30:00Z",
+      "sentiment_hint": "positive",
+      "tags": ["startup", "funding", "open-source", "enterprise"]
+    },
+    {
+      "id": "n003",
+      "title": "EU AI Act enforcement begins: first compliance audits underway",
+      "summary": "Regulators begin auditing high-risk AI systems deployed across member states.",
+      "published_at": "2026-06-11T11:00:00Z",
+      "sentiment_hint": "neutral",
+      "tags": ["regulation", "eu", "compliance", "policy"]
+    },
+    {
+      "id": "n004",
+      "title": "Nvidia unveils Rubin GPU architecture for inference at scale",
+      "summary": "Next-gen accelerator promises 3x throughput on transformer inference workloads.",
+      "published_at": "2026-06-11T07:45:00Z",
+      "sentiment_hint": "positive",
+      "tags": ["hardware", "nvidia", "inference", "ai"]
+    },
+    {
+      "id": "n005",
+      "title": "Qwen 3 tops open LLM leaderboard on multilingual benchmarks",
+      "summary": "Alibaba's model leads on cross-lingual reasoning, narrowing the gap with closed models.",
+      "published_at": "2026-06-10T13:20:00Z",
+      "sentiment_hint": "positive",
+      "tags": ["llm", "open-source", "benchmarks", "multilingual"]
+    },
+    {
+      "id": "n006",
+      "title": "OpenAI faces antitrust scrutiny over compute partnerships",
+      "summary": "Regulators question exclusive cloud deals and their effect on market competition.",
+      "published_at": "2026-06-10T09:10:00Z",
+      "sentiment_hint": "negative",
+      "tags": ["regulation", "openai", "antitrust", "policy"]
+    },
+    {
+      "id": "n007",
+      "title": "Hugging Face crosses 2 million hosted models",
+      "summary": "The open model hub reports accelerating growth driven by fine-tuned variants.",
+      "published_at": "2026-06-09T16:00:00Z",
+      "sentiment_hint": "positive",
+      "tags": ["open-source", "huggingface", "ecosystem", "ai"]
+    },
+    {
+      "id": "n008",
+      "title": "Anthropic publishes new interpretability research on feature steering",
+      "summary": "Paper details controllable behavior in production models via sparse feature edits.",
+      "published_at": "2026-06-09T08:30:00Z",
+      "sentiment_hint": "positive",
+      "tags": ["research", "anthropic", "interpretability", "safety"]
+    },
+    {
+      "id": "n009",
+      "title": "Stripe and Coinbase expand stablecoin payment rails to agents",
+      "summary": "New APIs let autonomous software make and settle micropayments in USDC.",
+      "published_at": "2026-06-08T12:00:00Z",
+      "sentiment_hint": "positive",
+      "tags": ["payments", "stablecoin", "agents", "web3"]
+    },
+    {
+      "id": "n010",
+      "title": "Report: 40% of Fortune 500 now run an open source LLM in production",
+      "summary": "Cost, privacy and customization cited as the main drivers of adoption.",
+      "published_at": "2026-06-08T07:00:00Z",
+      "sentiment_hint": "positive",
+      "tags": ["enterprise", "open-source", "adoption", "llm"]
+    }
+  ]
+}

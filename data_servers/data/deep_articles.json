@@ -1,0 +1,33 @@
+{
+  "source": "NexusPay Mock Articles",
+  "fetched_at": "2026-06-13T10:23:11Z",
+  "articles": [
+    {
+      "id": "a001",
+      "title": "The State of Open Source LLMs in 2026",
+      "content": "Open source language models have undergone a dramatic shift in 2025-2026. Where proprietary models once dominated benchmark rankings, the gap has narrowed substantially. LLaMA 4, Mistral Large 3, and Qwen 3 now compete directly with GPT-5 and Claude on most standard benchmarks. Enterprise adoption has followed: 40% of Fortune 500 companies now run at least one open source LLM in production, up from 12% in 2024. The key drivers are cost, data privacy, and customization. On-premise deployment eliminates data egress concerns, while fine-tuning on proprietary datasets creates competitive moats that closed models cannot replicate.",
+      "author": "Mock Author",
+      "published_at": "2026-06-10T09:00:00Z",
+      "word_count": 1200,
+      "tags": ["llm", "open-source", "enterprise", "benchmarks"]
+    },
+    {
+      "id": "a002",
+      "title": "Why Agentic Payments Need Stablecoins and Standards",
+      "content": "Autonomous agents that buy data, compute, or API access per call cannot rely on monthly subscriptions or human-in-the-loop approvals. The emerging answer is pay-per-call settlement over HTTP using stablecoins. Protocols like x402 reintroduce the long-dormant HTTP 402 status code as a structured payment-required signal: the server advertises a price and recipient, the client signs a transfer authorization, and a facilitator verifies it on chain. Because settlement is in USDC on low-fee networks such as Base, micropayments of a fraction of a cent become economical. The result is a machine-native commerce layer where budgets, not credentials, govern access.",
+      "author": "Mock Author",
+      "published_at": "2026-06-09T09:00:00Z",
+      "word_count": 1050,
+      "tags": ["payments", "x402", "stablecoin", "agents", "web3"]
+    },
+    {
+      "id": "a003",
+      "title": "Budget-Aware Agents: Designing for Spend Discipline",
+      "content": "An agent that can spend money needs the same guardrails a human team would demand: per-transaction caps, daily ceilings, and a complete audit trail. Effective designs enforce budget checks before any model or payment call, persist running totals so a restart cannot reset the limit, and log every attempt with its reasoning. This turns autonomy into something auditable: reviewers can reconstruct exactly why each purchase was made and confirm the agent never exceeded its mandate. As agents take on more economic activity, spend discipline becomes a first-class engineering concern rather than an afterthought.",
+      "author": "Mock Author",
+      "published_at": "2026-06-08T09:00:00Z",
+      "word_count": 980,
+      "tags": ["agents", "budget", "governance", "audit"]
+    }
+  ]
+}

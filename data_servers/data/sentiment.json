@@ -1,0 +1,71 @@
+{
+  "source": "NexusPay Mock Sentiment",
+  "fetched_at": "2026-06-13T10:23:11Z",
+  "topics": [
+    {
+      "topic": "open source LLMs",
+      "sentiment": {
+        "overall_score": 0.73,
+        "label": "positive",
+        "confidence": 0.88,
+        "breakdown": {"positive": 0.73, "neutral": 0.20, "negative": 0.07}
+      },
+      "trend": "rising",
+      "trend_30d_delta": 0.12,
+      "sample_size": 4821,
+      "analyzed_at": "2026-06-13T06:00:00Z"
+    },
+    {
+      "topic": "AI regulation",
+      "sentiment": {
+        "overall_score": -0.18,
+        "label": "negative",
+        "confidence": 0.71,
+        "breakdown": {"positive": 0.28, "neutral": 0.26, "negative": 0.46}
+      },
+      "trend": "falling",
+      "trend_30d_delta": -0.09,
+      "sample_size": 3102,
+      "analyzed_at": "2026-06-13T06:00:00Z"
+    },
+    {
+      "topic": "stablecoin payments",
+      "sentiment": {
+        "overall_score": 0.41,
+        "label": "positive",
+        "confidence": 0.66,
+        "breakdown": {"positive": 0.52, "neutral": 0.37, "negative": 0.11}
+      },
+      "trend": "rising",
+      "trend_30d_delta": 0.07,
+      "sample_size": 1894,
+      "analyzed_at": "2026-06-13T06:00:00Z"
+    },
+    {
+      "topic": "AI hardware",
+      "sentiment": {
+        "overall_score": 0.55,
+        "label": "positive",
+        "confidence": 0.79,
+        "breakdown": {"positive": 0.61, "neutral": 0.30, "negative": 0.09}
+      },
+      "trend": "stable",
+      "trend_30d_delta": 0.02,
+      "sample_size": 2603,
+      "analyzed_at": "2026-06-13T06:00:00Z"
+    },
+    {
+      "topic": "autonomous agents",
+      "sentiment": {
+        "overall_score": 0.34,
+        "label": "neutral",
+        "confidence": 0.62,
+        "breakdown": {"positive": 0.45, "neutral": 0.41, "negative": 0.14}
+      },
+      "trend": "rising",
+      "trend_30d_delta": 0.15,
+      "sample_size": 2210,
+      "analyzed_at": "2026-06-13T06:00:00Z"
+    }
+  ]
+}
