@@ -1,2 +1,20 @@
+# Virtual environments
+venv/
 /venv
-venv
+.venv/
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Database
+*.db
+nexuspay.db
+
+# OS
+.DS_Store
