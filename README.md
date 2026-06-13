@@ -222,9 +222,12 @@ functions, and the reasoning behind each decision — see
 
 ### Documentation website
 
-This repo ships a generator that turns the Markdown above into a polished docs
-website — pre-rendered **static HTML** (SEO), client-side **SPA** navigation
-(speed), and **AI-ready** output (`llms.txt` + raw `.md` per page):
+This repo ships a generator (`docs/build.py`) that turns the Markdown above
+into a polished docs website — pre-rendered **static HTML** (SEO), client-side
+**SPA** navigation (speed), and **AI-ready** output (`llms.txt` + raw `.md` per
+page). It's styled with a **glassmorphism** theme (frosted, translucent panels
+over a vibrant gradient background) and a glass-style logo, with a
+**collapsible table of contents** for the Documentation page.
 
 ```bash
 make docs          # build → ./site
@@ -232,9 +235,9 @@ make docs-serve    # build + serve at http://localhost:8899
 ```
 
 It auto-deploys to **GitHub Pages** via `.github/workflows/docs.yml` on every
-push to `main`. One-time setup: in the repo, go to **Settings → Pages → Build
-and deployment → Source: GitHub Actions**. Live site:
-<https://nexuspay.devanshsingh.dev/>.
+push to `main`, including a `CNAME` for the custom domain. One-time setup: in
+the repo, go to **Settings → Pages → Build and deployment → Source: GitHub
+Actions**. Live site: **<https://nexuspay.devanshsingh.dev/>**.
 
 ---
 

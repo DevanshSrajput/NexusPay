@@ -20,8 +20,9 @@ decision. Read this top-to-bottom and you will understand the entire codebase.
 10. [Error handling](#10-error-handling)
 11. [Design decisions & trade-offs](#11-design-decisions--trade-offs)
 12. [Testing](#12-testing)
-13. [How to extend it](#13-how-to-extend-it)
-14. [Glossary](#14-glossary)
+13. [Documentation website](#13-documentation-website)
+14. [How to extend it](#14-how-to-extend-it)
+15. [Glossary](#15-glossary)
 
 ---
 
@@ -690,7 +691,56 @@ database, no servers, and no network.
 
 ---
 
-## 13. How to extend it
+## 13. Documentation website
+
+`docs/build.py` turns `README.md` and this file into a polished documentation
+site, deployed automatically on GitHub Pages at
+**<https://nexuspay.devanshsingh.dev/>**.
+
+```bash
+make docs          # build → ./site
+make docs-serve    # build + serve at http://localhost:8899
+```
+
+What the generator does, in one pass:
+
+- **Static HTML per page** — `site/index.html` (Home), `site/overview/`
+  (← `README.md`), `site/documentation/` (← this file). Each page is fully
+  rendered server-side: crawlable, no JS required to read it.
+- **SEO** — per-page `<title>`, meta description, canonical URL, Open Graph /
+  Twitter cards, JSON-LD structured data, plus `sitemap.xml` and `robots.txt`.
+- **SPA navigation** — `docs/theme/app.js` intercepts internal link clicks,
+  fetches the target page, swaps the `.shell` content via `DOMParser`, and
+  updates history with `pushState`, so navigation feels instant after the
+  first load. Falls back to a normal page load with JS disabled.
+- **AI-ready** — every page is also served as raw Markdown
+  (`overview.md`, `documentation.md`), plus `llms.txt` (a structured index)
+  and `llms-full.txt` (everything concatenated), so LLM agents can consume
+  the docs directly without scraping HTML.
+- **Collapsible Documentation TOC** — the sidebar's "Documentation" entry is a
+  disclosure group: its chevron toggles open/closed, and all 15 section
+  anchors are listed as sub-links once expanded.
+- **Glassmorphism theme** — `docs/theme/styles.css` renders the whole site
+  with frosted, translucent surfaces (`backdrop-filter: blur`, soft borders,
+  inset highlights) over a vibrant multi-gradient background, in both dark
+  (default) and light themes. `docs/theme/favicon.svg` is the glass-style
+  NexusPay logo used as the favicon and nav brand mark.
+
+**Link rewriting** — `rewrite_links()` in `docs/build.py` converts
+cross-references between `README.md` and `DOCUMENTATION.md` into links between
+the generated pages (preserving `#anchor`s), and rewrites every other relative
+path (e.g. `.env.example`, `tests/`) into a `github.com/.../blob|tree/main/...`
+URL, since those files aren't part of the generated site.
+
+**Deployment** — `.github/workflows/docs.yml` runs `docs/build.py` on every
+push to `main` and deploys `site/` via `actions/deploy-pages`. The custom
+domain (`nexuspay.devanshsingh.dev`) is carried through via a `CNAME` file that
+the build copies into `site/`. One-time repo setup: **Settings → Pages →
+Build and deployment → Source: GitHub Actions**.
+
+---
+
+## 14. How to extend it
 
 - **Add a data source:** add an entry to `config/sources.json`, a JSON payload
   under `data_servers/data/`, and a route + `_ENDPOINTS` entry in
@@ -707,7 +757,7 @@ database, no servers, and no network.
 
 ---
 
-## 14. Glossary
+## 15. Glossary
 
 - **x402** — an open protocol that turns HTTP `402 Payment Required` into a real
   pay-per-request payment handshake.
