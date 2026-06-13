@@ -10,6 +10,8 @@
 [![Gemini](https://img.shields.io/badge/LLM-Google%20Gemini-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
 [![Tests](https://img.shields.io/badge/tests-passing-success)](tests/)
 
+### 📖 [Browse the full documentation site →](https://nexuspay.devanshsingh.dev/)
+
 </div>
 
 ---
