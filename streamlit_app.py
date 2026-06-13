@@ -57,21 +57,30 @@ def bootstrap() -> bool:
     import httpx
     from data_servers.server import app as data_app
 
-    config = uvicorn.Config(
-        data_app, host="127.0.0.1", port=settings.data_server_port,
-        log_level="warning",
-    )
-    server = uvicorn.Server(config)
-    threading.Thread(target=server.run, daemon=True).start()
-
-    # Wait for the server to accept connections.
     base = f"http://127.0.0.1:{settings.data_server_port}/health"
-    for _ in range(50):
-        try:
-            if httpx.get(base, timeout=0.5).status_code == 200:
-                break
-        except Exception:
-            time.sleep(0.1)
+
+    # If a data server is already up (e.g. hot reload), reuse it.
+    already_up = False
+    try:
+        already_up = httpx.get(base, timeout=0.5).status_code == 200
+    except Exception:
+        already_up = False
+
+    if not already_up:
+        config = uvicorn.Config(
+            data_app, host="127.0.0.1", port=settings.data_server_port,
+            log_level="warning",
+        )
+        server = uvicorn.Server(config)
+        threading.Thread(target=server.run, daemon=True).start()
+
+        # Wait for the server to accept connections.
+        for _ in range(50):
+            try:
+                if httpx.get(base, timeout=0.5).status_code == 200:
+                    break
+            except Exception:
+                time.sleep(0.1)
 
     _run_async(init_db())
     return True
@@ -315,51 +324,56 @@ examples = [
     "Give me the latest breaking news on AI hardware.",
     "Deep analysis of agentic payments and stablecoins.",
 ]
+
+
+def _use_example(text: str) -> None:
+    # Runs as an on_click callback, before the text area is instantiated this
+    # run, so writing to the widget-keyed state is allowed here.
+    st.session_state.query_input = text
+
+
 ex_cols = st.columns(len(examples))
 for col, ex in zip(ex_cols, examples):
-    if col.button(ex, key=f"ex_{ex[:12]}", width="stretch"):
-        st.session_state.query_input = ex
-        st.rerun()
+    col.button(ex, key=f"ex_{ex[:12]}", width="stretch",
+               on_click=_use_example, args=(ex,))
 
 run = st.button("◢  Run agent", type="primary", width="stretch")
 
-# ── Run pipeline ──
-if run and query.strip():
+def _steps(active: int, labels) -> str:
+    rows = []
+    for i, lab in enumerate(labels):
+        cls = "" if i > active else "active"
+        mark = ('<span class="np-spin"></span>' if i == active
+                else (icon("check") if i < active else f'{i + 1}'))
+        rows.append(f'<div class="np-step {cls}"><span class="s">{mark}</span>{esc(lab)}</div>')
+    return '<div class="np-card">' + "".join(rows) + "</div>"
+
+
+def run_pipeline(q: str, max_spend: float, forced) -> None:
     qid = new_query_id()
     stepper = st.empty()
-
-    def steps(active: int, labels):
-        rows = []
-        for i, lab in enumerate(labels):
-            cls = "active" if i == active else ("" if i > active else "active")
-            mark = ('<span class="np-spin"></span>' if i == active
-                    else (icon("check") if i < active else f'{i+1}'))
-            rows.append(f'<div class="np-step {cls}"><span class="s">{mark}</span>{esc(lab)}</div>')
-        return '<div class="np-card">' + "".join(rows) + "</div>"
-
     labels = ["Planning — selecting data sources", "Budget pre-check",
               "Executing x402 payments", "Synthesizing the answer"]
 
-    stepper.markdown(steps(0, labels), unsafe_allow_html=True)
-    plan_res = _run_async(plan_stage(qid, query.strip(), max_spend, forced))
+    stepper.markdown(_steps(0, labels), unsafe_allow_html=True)
+    plan_res = _run_async(plan_stage(qid, q, max_spend, forced))
 
     if plan_res.error:
         e = plan_res.error
         stepper.empty()
         st.markdown(f"""
         <div class="np-card" style="border-color:var(--danger);">
-          <div class="np-eyebrow" style="color:var(--danger);">⛔ {esc(e.error)}</div>
+          <div class="np-eyebrow" style="color:var(--danger);">budget guard · {esc(e.error)}</div>
           <div style="color:var(--fg); font-size:15px;">{esc(e.message)}</div>
           <div class="mono" style="color:var(--fg-dim); font-size:12px; margin-top:8px;">
             spent ${e.daily_spent:.4f} / cap ${e.daily_cap:.2f} · ${e.remaining:.4f} remaining</div>
         </div>""", unsafe_allow_html=True)
-        st.stop()
+        return
 
     plan = plan_res.plan
     time.sleep(0.25)
-    stepper.markdown(steps(2, labels), unsafe_allow_html=True)
+    stepper.markdown(_steps(2, labels), unsafe_allow_html=True)
 
-    # Plan card
     chosen = " ".join(
         f'<span class="np-pill" style="color:var(--fg);"><span class="np-dot"></span>{esc(sid)} '
         f'· ${registry.get_by_id(sid).price_usdc:.3f}</span>'
@@ -371,7 +385,6 @@ if run and query.strip():
       <div class="np-chips">{chosen}</div>
     </div>""", unsafe_allow_html=True)
 
-    # Execute (animate result cards progressively)
     outcome = _run_async(execute_stage(plan))
     st.markdown('<div class="np-eyebrow" style="margin-top:6px;">x402 settlements</div>',
                 unsafe_allow_html=True)
@@ -398,11 +411,10 @@ if run and query.strip():
         feed.markdown(cards, unsafe_allow_html=True)
         time.sleep(0.35)
 
-    # Synthesize
     time.sleep(0.2)
-    stepper.markdown(steps(3, labels), unsafe_allow_html=True)
+    stepper.markdown(_steps(3, labels), unsafe_allow_html=True)
     synthesis, status = _run_async(
-        synthesize_stage(qid, query.strip(), outcome, len(plan.sources)))
+        synthesize_stage(qid, q, outcome, len(plan.sources)))
     stepper.empty()
 
     status_color = {"complete": "var(--accent)", "partial": "var(--warn)",
@@ -410,14 +422,29 @@ if run and query.strip():
     st.markdown(f"""
     <div class="np-card glow">
       <div class="np-eyebrow" style="color:{status_color};">
-        ◆ Answer · {esc(status)} · total ${outcome.total_cost:.4f} · confidence {esc(synthesis.confidence)}</div>
+        Answer · {esc(status)} · total ${outcome.total_cost:.4f} · confidence {esc(synthesis.confidence)}</div>
       <div class="np-answer">{esc(synthesis.answer)}</div>
     </div>""", unsafe_allow_html=True)
 
     st.session_state.history.insert(0, {
-        "query": query.strip(), "cost": outcome.total_cost,
+        "query": q, "cost": outcome.total_cost,
         "sources": len([r for r in outcome.results if r.success]), "status": status,
     })
+
+
+# ── Run pipeline ──
+if run and query.strip():
+    try:
+        run_pipeline(query.strip(), max_spend, forced)
+    except Exception as exc:  # never surface a raw traceback to the user
+        st.markdown(f"""
+        <div class="np-card" style="border-color:var(--danger);">
+          <div class="np-eyebrow" style="color:var(--danger);">something went wrong</div>
+          <div style="color:var(--fg); font-size:15px;">The agent hit an unexpected error
+            and stopped safely. No further spend occurred.</div>
+          <div class="mono" style="color:var(--fg-dim); font-size:12px; margin-top:8px;">
+            {esc(type(exc).__name__)}: {esc(str(exc)[:160])}</div>
+        </div>""", unsafe_allow_html=True)
 
 # ── Activity log ──
 st.markdown("<hr>", unsafe_allow_html=True)
