@@ -79,6 +79,7 @@ The supporting packages:
 | `payment/`       | The x402 *client* — wallet + the pay-for-resource flow.        |
 | `data_servers/`  | The x402 *server* — middleware + the mock endpoints.           |
 | `streamlit_app.py` | The web UI — a two-section (Control center / About) Streamlit app that runs the data server in a thread and drives `agent/pipeline.py`. |
+| `docs/` | Documentation-site generator (`build.py` + theme) that renders this Markdown into a static, SPA, AI-ready website; deployed to GitHub Pages. |
 
 ---
 

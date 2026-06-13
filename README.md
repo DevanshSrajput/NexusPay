@@ -220,6 +220,22 @@ For a deep dive — the idea, every file's role, the algorithms, the major
 functions, and the reasoning behind each decision — see
 **[DOCUMENTATION.md](DOCUMENTATION.md)**.
 
+### Documentation website
+
+This repo ships a generator that turns the Markdown above into a polished docs
+website — pre-rendered **static HTML** (SEO), client-side **SPA** navigation
+(speed), and **AI-ready** output (`llms.txt` + raw `.md` per page):
+
+```bash
+make docs          # build → ./site
+make docs-serve    # build + serve at http://localhost:8899
+```
+
+It auto-deploys to **GitHub Pages** via `.github/workflows/docs.yml` on every
+push to `main`. One-time setup: in the repo, go to **Settings → Pages → Build
+and deployment → Source: GitHub Actions**. Live site:
+<https://devanshsrajput.github.io/NexusPay/>.
+
 ---
 
 <div align="center">
