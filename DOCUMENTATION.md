@@ -248,16 +248,18 @@ Every SQL statement lives here so the rest of the app never writes raw SQL.
 
 | Function | Purpose |
 |----------|---------|
-| `log_spend(...)` | Insert one payment attempt (success or failure). |
+| `log_spend(...)` | Insert one payment attempt (success or failure); accepts an optional `quality_rating`. |
 | `get_daily_total()` | `SUM(cost_usdc)` of **successful** spends for today (UTC). The number the budget cap is measured against. |
 | `get_all_logs(limit)` | Recent spend logs, newest first. |
 | `get_logs_by_query(query_id)` | All logs for one query, oldest first. |
 | `count_queries_today()` | How many queries were submitted today. |
 | `create_query(...)` | Insert a new top-level query row (`status='pending'`). |
-| `update_query(query_id, **fields)` | Patch arbitrary columns; auto-sets `completed_at` when status becomes terminal. |
+| `update_query(query_id, **fields)` | Patch **whitelisted** columns (`_UPDATABLE_QUERY_COLUMNS`); rejects unknown keys with `ValueError`; auto-sets `completed_at` when status becomes terminal (`complete`/`partial`/`failed`). |
 
 > **Reasoning:** the daily total is read from the DB (not held in memory) so a
 > process restart can never reset the budget — a deliberate safety property.
+> `update_query` whitelists column names so an injected/arbitrary identifier can
+> never reach the SQL string.
 
 ---
 
@@ -398,8 +400,10 @@ Pydantic models that define and validate the HTTP contract:
 - **`PurchasePlan`** — the validated, cost-corrected plan the executor consumes.
 - **`_call_gemini(query)`** — calls Gemini with `response_mime_type=
   "application/json"`, parses, validates; **retries once** on bad JSON.
-- **`_keyword_fallback(query)`** — deterministic selection by matching query
-  words against source tags; used when there's no API key or the LLM fails.
+- **`_keyword_fallback(query)`** — deterministic selection: tokenizes the query
+  and matches each token against source tags via `registry.get_by_tag()` (plus a
+  data-type match), falling back to the cheapest source so the flow always runs.
+  Used when there's no API key or the LLM fails.
 - **`plan_purchase(query_id, query, forced_sources)`** — orchestrates: forced
   sources > Gemini > fallback, then **recomputes `estimated_cost` from the
   registry** rather than trusting the model's arithmetic.
@@ -447,7 +451,8 @@ Pydantic models that define and validate the HTTP contract:
   today's spend.
 - **`POST /query`** — implements the six-step lifecycle from §3, updating the
   `queries` row's status at each stage (`pending → planning → executing →
-  synthesizing → complete/failed`).
+  synthesizing → complete/partial/failed`). A run where some sources succeed and
+  others fail is stored as `partial` (not collapsed to `complete`).
 - **`GET /logs`**, **`GET /budget`**, **`GET /sources`**, **`GET /health`** —
   observability endpoints.
 - **`_budget_error(...)`** — builds the consistent `402` budget error body.
@@ -595,7 +600,8 @@ gap between what the model *claims* a plan costs and what it *actually* costs.
 ### `spend_logs` — every payment attempt
 `id`, `query_id`, `endpoint`, `endpoint_url`, `cost_usdc`, `txn_hash`,
 `success` (0/1), `error_message`, `data_preview` (first 200 chars), `quality_rating`
-(v2), `created_at` (UTC). Indexed on `created_at` and `query_id`.
+(writable via `log_spend()`; populated by the v2 scoring feature), `created_at`
+(UTC). Indexed on `created_at` and `query_id`.
 
 The daily-total query — the budget's source of truth:
 
@@ -610,7 +616,7 @@ WHERE success = 1 AND DATE(created_at) = DATE('now', 'utc');
 `final_answer`, `error_message`, `created_at`, `completed_at`. Indexed on `status`.
 
 The `status` column traces the request lifecycle:
-`pending → planning → executing → synthesizing → complete | failed`.
+`pending → planning → executing → synthesizing → complete | partial | failed`.
 
 ---
 
