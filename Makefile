@@ -1,4 +1,4 @@
-.PHONY: install data-server agent run ui demo test clean
+.PHONY: install data-server agent run ui docs docs-serve demo test clean
 
 VENV := venv
 PY := $(VENV)/bin/python
@@ -22,6 +22,14 @@ ui:
 run:
 	$(UVICORN) data_servers.server:app --port 8001 & \
 	$(UVICORN) agent.main:app --port 8000
+
+# Build the documentation website (Markdown → static SPA in ./site).
+docs:
+	$(PY) docs/build.py
+
+# Build, then serve the docs locally.
+docs-serve: docs
+	$(PY) -m http.server 8899 -d site
 
 demo:
 	curl -s -X POST http://localhost:8000/query \

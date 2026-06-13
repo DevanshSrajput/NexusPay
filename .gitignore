@@ -17,6 +17,9 @@ __pycache__/
 *.db
 nexuspay.db
 
+# Generated docs site (built fresh by CI / make docs)
+site/
+
 # Issues
 ISSUES.md
 

@@ -18,6 +18,10 @@ eth-account>=0.11.0
 # UI
 streamlit>=1.40.0
 
+# Docs site generator (docs/build.py)
+markdown>=3.5
+pygments>=2.17
+
 # Tests
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
