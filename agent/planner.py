@@ -87,11 +87,17 @@ def _extract_json(text: str) -> dict:
 
 
 def _keyword_fallback(query: str) -> PlannerOutput:
-    """Deterministic source selection used when the LLM is unavailable."""
-    q = query.lower()
+    """Deterministic source selection used when the LLM is unavailable.
+
+    Tokenizes the query and matches each token against source tags (via the
+    registry's tag index) and data types, preserving the order sources appear
+    in the catalog.
+    """
+    tokens = set(re.findall(r"[a-z0-9]+", query.lower()))
     chosen: list[str] = []
     for source in registry.get_all():
-        if any(tag.lower() in q for tag in source.tags) or source.data_type in q:
+        tag_hit = any(source in registry.get_by_tag(token) for token in tokens)
+        if tag_hit or source.data_type in tokens:
             chosen.append(source.id)
     if not chosen:
         # Default to the cheapest source so the flow still runs.
