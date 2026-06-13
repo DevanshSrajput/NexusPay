@@ -14,6 +14,7 @@ async def log_spend(
     success: bool,
     error_message: Optional[str] = None,
     data_preview: Optional[str] = None,
+    quality_rating: Optional[float] = None,
 ) -> int:
     """Insert a single payment attempt. Returns the new row id."""
     conn = await get_connection()
@@ -22,8 +23,8 @@ async def log_spend(
             """
             INSERT INTO spend_logs
                 (query_id, endpoint, endpoint_url, cost_usdc, txn_hash,
-                 success, error_message, data_preview)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                 success, error_message, data_preview, quality_rating)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 query_id,
@@ -34,6 +35,7 @@ async def log_spend(
                 1 if success else 0,
                 error_message,
                 data_preview,
+                quality_rating,
             ),
         )
         await conn.commit()
@@ -117,20 +119,38 @@ async def create_query(query_id: str, query_text: str, max_spend: float) -> None
         await conn.close()
 
 
-async def update_query(query_id: str, **fields: Any) -> None:
-    """Update arbitrary columns on a query row.
+# Columns on the `queries` table that update_query is allowed to write.
+_UPDATABLE_QUERY_COLUMNS = frozenset({
+    "status", "max_spend", "estimated_cost", "actual_cost",
+    "sources_planned", "sources_used", "planner_reasoning",
+    "final_answer", "error_message", "completed_at",
+})
 
-    ``completed_at`` is set automatically when status is terminal.
+# Statuses that mark a query as finished (set completed_at automatically).
+_TERMINAL_STATUSES = {"complete", "partial", "failed"}
+
+
+async def update_query(query_id: str, **fields: Any) -> None:
+    """Update whitelisted columns on a query row.
+
+    Only columns in ``_UPDATABLE_QUERY_COLUMNS`` may be written, which prevents
+    arbitrary/injected identifiers from reaching the SQL string. ``completed_at``
+    is set automatically when status becomes terminal.
     """
     if not fields:
         return
-    if fields.get("status") in {"complete", "failed"} and "completed_at" not in fields:
+
+    unknown = set(fields) - _UPDATABLE_QUERY_COLUMNS
+    if unknown:
+        raise ValueError(f"update_query received unknown column(s): {sorted(unknown)}")
+
+    if fields.get("status") in _TERMINAL_STATUSES and "completed_at" not in fields:
         fields["completed_at"] = None  # placeholder, set via SQL below
 
     assignments = []
     values: list[Any] = []
     for key, val in fields.items():
-        if key == "completed_at" and val is None and fields.get("status") in {"complete", "failed"}:
+        if key == "completed_at" and val is None and fields.get("status") in _TERMINAL_STATUSES:
             assignments.append("completed_at = datetime('now', 'utc')")
             continue
         assignments.append(f"{key} = ?")
