@@ -78,6 +78,7 @@ The supporting packages:
 | `agent/`         | The brain: planning, budgeting, execution, synthesis, the API. |
 | `payment/`       | The x402 *client* — wallet + the pay-for-resource flow.        |
 | `data_servers/`  | The x402 *server* — middleware + the mock endpoints.           |
+| `streamlit_app.py` | The web UI — a two-section (Control center / About) Streamlit app that runs the data server in a thread and drives `agent/pipeline.py`. |
 
 ---
 
@@ -490,11 +491,27 @@ green accent, custom-CSS animations):
 - **Secrets bridge** — copies `st.secrets` into `os.environ` *before* importing
   `settings`, so the same code reads `.env` locally and Streamlit Cloud secrets
   in the cloud.
-- The view drives `agent/pipeline.py` stage by stage, animating the plan, each
-  x402 settlement (with its txn hash), and the final answer, alongside a live
-  budget gauge and the spend log.
+- **Two sections** behind a prominent segmented switcher (`st.tabs`):
+  - **Control center** (`tab_app`) — the persistent header (logo + live status
+    pills for payment mode, LLM, wallet, network), the query box with clickable
+    example chips, the animated pipeline, the x402 settlement cards, and the
+    spend log / session stats. The budget gauge and spend controls live in the
+    sidebar (Mission Control), visible from either section.
+  - **About** (`tab_about`) — what the project is and does, a guide to every UI
+    component (including the green/amber/red meaning of settlement cards), the
+    author (Devansh Singh), and `st.link_button`s to the GitHub repo and issue
+    tracker (`GITHUB_URL` / `ISSUES_URL`).
+- **`run_pipeline()`** — drives `agent/pipeline.py` stage by stage, animating the
+  plan, each x402 settlement (with its txn hash), and the final answer. It is
+  wrapped in a `try/except` that renders a clean styled error card instead of a
+  raw traceback.
+- **`_use_example()`** — an `on_click` callback (runs before the text-area widget
+  is instantiated) that fills the query box from an example chip. Doing this in a
+  callback avoids Streamlit's "cannot modify a widget-keyed value after the
+  widget exists" error.
 
-`.streamlit/config.toml` carries the matching dark theme.
+`.streamlit/config.toml` carries the matching dark theme and sets
+`showErrorDetails = "none"` so unexpected errors stay aesthetic.
 
 > **Reasoning:** running the data server in a thread (rather than requiring a
 > second deployed service) is the key trick that lets the two-server x402
@@ -677,6 +694,9 @@ database, no servers, and no network.
   write `quality_rating` back to `spend_logs`; feed scores into planning.
 - **Swap the LLM:** the planner and synthesizer are the only LLM touch-points;
   both isolate the provider call behind one function.
+- **Extend the UI:** add a section by adding a tab to `st.tabs([...])` in
+  `streamlit_app.py`; reuse the existing CSS classes (`np-card`, `np-eyebrow`,
+  `np-pill`, …) to stay on-theme.
 
 ---
 

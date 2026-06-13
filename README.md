@@ -100,9 +100,14 @@ GEMINI_API_KEY=your-key-here
 
 ### Run the web UI (recommended)
 
-A dark, animated **Streamlit** control center — type a query and watch the agent
-plan, pay each source over x402, and synthesize the answer in real time, with a
-live budget gauge and spend log.
+A dark, animated **Streamlit** app with two clearly-labelled sections (a
+segmented switcher at the top):
+
+- **Control center** — type a query (or tap an example chip) and watch the agent
+  plan, pay each source over x402, and synthesize the answer in real time, with a
+  live budget gauge (in the sidebar), animated settlement cards, and a spend log.
+- **About** — what the project is, what it does, a guide to every UI component,
+  and links to the GitHub repo / issue tracker.
 
 ```bash
 make ui            # → http://localhost:8501
