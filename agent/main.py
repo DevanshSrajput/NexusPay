@@ -6,6 +6,7 @@ plus observability endpoints for logs, budget and sources.
 Run:  uvicorn agent.main:app --port 8000
 """
 
+import secrets
 import time
 from contextlib import asynccontextmanager
 
@@ -65,7 +66,7 @@ def _budget_error(status_spent: float, message: str, error: str) -> JSONResponse
 
 @app.post("/query")
 async def query(req: QueryRequest):
-    query_id = f"q_{int(time.time())}"
+    query_id = f"q_{int(time.time())}_{secrets.token_hex(3)}"
     await create_query(query_id, req.query, req.max_spend)
 
     # Step 1: per-query cap pre-check on the requested ceiling.
