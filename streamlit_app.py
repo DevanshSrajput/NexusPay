@@ -131,11 +131,9 @@ code, .mono, .np-txn, .np-num{ font-family:'Fira Code',monospace; font-variant-n
   background:linear-gradient(120deg,#22C55E55,#38BDF855,#22C55E55); background-size:200% 100%;
   -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite:xor; mask-composite:exclude; animation:npGrad 6s linear infinite; opacity:.5; }
+.np-header-row{ display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; }
 .np-brand{ display:flex; align-items:center; gap:14px; }
 .np-logo{ width:46px; height:46px; flex:none; filter:drop-shadow(0 0 10px rgba(34,197,94,.5)); }
-.np-title{ font-size:30px; font-weight:700; margin:0; line-height:1;
-  background:linear-gradient(90deg,#F8FAFC,#22C55E 120%); -webkit-background-clip:text;
-  background-clip:text; -webkit-text-fill-color:transparent; }
 .np-tag{ color:var(--fg-dim); font-size:14px; margin-top:6px; }
 .np-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
 .np-pill{ display:inline-flex; align-items:center; gap:7px; font-family:'Fira Code',monospace;
@@ -207,6 +205,15 @@ button[kind="primary"], .stButton>button[data-testid="baseButton-primary"]{
   background:linear-gradient(90deg,var(--accent),var(--accent-dim)) !important;
   color:#05210f !important; border:none !important; }
 button[kind="primary"]:hover{ box-shadow:0 0 22px rgba(34,197,94,.45) !important; transform:translateY(-1px); }
+[data-testid="stLinkButton"] a{ border-radius:11px !important; font-weight:600 !important;
+  font-family:'Fira Code',monospace !important; border:1px solid var(--border) !important;
+  background:var(--surface) !important; color:var(--fg) !important; transition:all .2s ease !important; }
+[data-testid="stLinkButton"] a:hover{ border-color:var(--accent) !important; transform:translateY(-1px);
+  box-shadow:0 6px 18px rgba(0,0,0,.35) !important; }
+.stTabs [data-baseweb="tab-list"]{ gap:6px; border-bottom:1px solid var(--border); }
+.stTabs [data-baseweb="tab"]{ font-family:'Fira Code',monospace; color:var(--fg-dim); }
+.stTabs [aria-selected="true"]{ color:var(--accent) !important; }
+.stTabs [data-baseweb="tab-highlight"]{ background:var(--accent) !important; }
 section[data-testid="stSidebar"]{ background:linear-gradient(180deg,#111B2E,#0C1424); border-right:1px solid var(--border); }
 [data-testid="stMetricValue"]{ font-family:'Fira Code',monospace !important; }
 .stDataFrame{ border-radius:12px; overflow:hidden; }
@@ -261,18 +268,14 @@ pay_dot = "" if settings.mock_payments else " amber"
 llm_label = f"Gemini · {esc(settings.gemini_model)}" if key_set else "Keyword fallback"
 st.markdown(f"""
 <div class="np-hero">
-  <div class="np-brand">
-    {LOGO_SVG}
-    <div>
-      <div class="np-title">NexusPay</div>
-      <div class="np-tag">Autonomous agent that buys the data it needs, pays per call with x402, and answers you.</div>
+  <div class="np-header-row">
+    <div class="np-brand">{LOGO_SVG}</div>
+    <div class="np-chips" style="margin-top:0;">
+      <span class="np-pill"><span class="np-dot{pay_dot}"></span> {pay_label}</span>
+      <span class="np-pill">LLM · {llm_label}</span>
+      <span class="np-pill">wallet · {esc(short_wallet)}</span>
+      <span class="np-pill">net · {esc(settings.network)}</span>
     </div>
-  </div>
-  <div class="np-chips">
-    <span class="np-pill"><span class="np-dot{pay_dot}"></span> {pay_label}</span>
-    <span class="np-pill">LLM · {llm_label}</span>
-    <span class="np-pill">wallet · {esc(short_wallet)}</span>
-    <span class="np-pill">net · {esc(settings.network)}</span>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -314,10 +317,8 @@ with st.sidebar:
             f'<span style="color:var(--accent);">${s.price_usdc:.3f}</span></div>',
             unsafe_allow_html=True)
 
-# ── Query input ──
-st.markdown('<div class="np-eyebrow" style="margin-top:6px;">Ask the agent</div>', unsafe_allow_html=True)
-query = st.text_area("query", key="query_input", height=92, label_visibility="collapsed",
-                     placeholder="e.g. What is the sentiment around open source LLMs, and the latest news?")
+GITHUB_URL = "https://github.com/DevanshSrajput/NexusPay"
+ISSUES_URL = GITHUB_URL + "/issues"
 
 examples = [
     "What is the sentiment around open source LLMs this week?",
@@ -332,12 +333,21 @@ def _use_example(text: str) -> None:
     st.session_state.query_input = text
 
 
-ex_cols = st.columns(len(examples))
-for col, ex in zip(ex_cols, examples):
-    col.button(ex, key=f"ex_{ex[:12]}", width="stretch",
-               on_click=_use_example, args=(ex,))
+# ── Tabs ──
+tab_app, tab_about = st.tabs(["Control center", "About"])
 
-run = st.button("◢  Run agent", type="primary", width="stretch")
+with tab_app:
+    st.markdown('<div class="np-eyebrow" style="margin-top:6px;">Ask the agent</div>',
+                unsafe_allow_html=True)
+    query = st.text_area("query", key="query_input", height=92, label_visibility="collapsed",
+                         placeholder="e.g. What is the sentiment around open source LLMs, and the latest news?")
+
+    ex_cols = st.columns(len(examples))
+    for col, ex in zip(ex_cols, examples):
+        col.button(ex, key=f"ex_{ex[:12]}", width="stretch",
+                   on_click=_use_example, args=(ex,))
+
+    run = st.button("◢  Run agent", type="primary", width="stretch")
 
 def _steps(active: int, labels) -> str:
     rows = []
@@ -432,46 +442,104 @@ def run_pipeline(q: str, max_spend: float, forced) -> None:
     })
 
 
-# ── Run pipeline ──
-if run and query.strip():
-    try:
-        run_pipeline(query.strip(), max_spend, forced)
-    except Exception as exc:  # never surface a raw traceback to the user
+with tab_app:
+    # ── Run pipeline ──
+    if run and query.strip():
+        try:
+            run_pipeline(query.strip(), max_spend, forced)
+        except Exception as exc:  # never surface a raw traceback to the user
+            st.markdown(f"""
+            <div class="np-card" style="border-color:var(--danger);">
+              <div class="np-eyebrow" style="color:var(--danger);">something went wrong</div>
+              <div style="color:var(--fg); font-size:15px;">The agent hit an unexpected error
+                and stopped safely. No further spend occurred.</div>
+              <div class="mono" style="color:var(--fg-dim); font-size:12px; margin-top:8px;">
+                {esc(type(exc).__name__)}: {esc(str(exc)[:160])}</div>
+            </div>""", unsafe_allow_html=True)
+
+    # ── Activity log ──
+    st.markdown("<hr>", unsafe_allow_html=True)
+    col_a, col_b = st.columns([3, 2])
+
+    with col_a:
+        st.markdown('<div class="np-eyebrow">Spend log</div>', unsafe_allow_html=True)
+        logs = _run_async(get_all_logs(limit=12))
+        if logs:
+            rows = [{
+                "endpoint": r["endpoint"],
+                "cost": f'${r["cost_usdc"]:.3f}',
+                "ok": "✓" if r["success"] else "✗",
+                "txn": (r["txn_hash"] or "—")[:16] + ("…" if r["txn_hash"] else ""),
+                "time": r["created_at"][11:19],
+            } for r in logs]
+            st.dataframe(rows, width="stretch", hide_index=True)
+        else:
+            st.markdown('<div class="np-card" style="color:var(--fg-dim);">No spend yet — run a query above.</div>',
+                        unsafe_allow_html=True)
+
+    with col_b:
+        st.markdown('<div class="np-eyebrow">This session</div>', unsafe_allow_html=True)
+        total = sum(h["cost"] for h in st.session_state.history)
         st.markdown(f"""
-        <div class="np-card" style="border-color:var(--danger);">
-          <div class="np-eyebrow" style="color:var(--danger);">something went wrong</div>
-          <div style="color:var(--fg); font-size:15px;">The agent hit an unexpected error
-            and stopped safely. No further spend occurred.</div>
-          <div class="mono" style="color:var(--fg-dim); font-size:12px; margin-top:8px;">
-            {esc(type(exc).__name__)}: {esc(str(exc)[:160])}</div>
+        <div class="np-card np-stat">
+          <div class="v">${total:.4f}</div><div class="l">spent this session</div>
+          <div style="height:10px;"></div>
+          <div class="v">{len(st.session_state.history)}</div><div class="l">queries run</div>
         </div>""", unsafe_allow_html=True)
 
-# ── Activity log ──
-st.markdown("<hr>", unsafe_allow_html=True)
-col_a, col_b = st.columns([3, 2])
 
-with col_a:
-    st.markdown('<div class="np-eyebrow">Spend log</div>', unsafe_allow_html=True)
-    logs = _run_async(get_all_logs(limit=12))
-    if logs:
-        rows = [{
-            "endpoint": r["endpoint"],
-            "cost": f'${r["cost_usdc"]:.3f}',
-            "ok": "✓" if r["success"] else "✗",
-            "txn": (r["txn_hash"] or "—")[:16] + ("…" if r["txn_hash"] else ""),
-            "time": r["created_at"][11:19],
-        } for r in logs]
-        st.dataframe(rows, width="stretch", hide_index=True)
-    else:
-        st.markdown('<div class="np-card" style="color:var(--fg-dim);">No spend yet — run a query above.</div>',
-                    unsafe_allow_html=True)
+with tab_about:
+    st.markdown("""
+    <div class="np-card glow">
+      <div class="np-eyebrow">What is NexusPay?</div>
+      <div style="font-size:16px; line-height:1.7; color:var(--fg);">
+        <b>NexusPay</b> is an autonomous AI agent that buys the data it needs to answer you.
+        Ask a question in plain English and the agent uses an LLM to decide which paid data
+        sources are worth buying, pays for each one over the <b>x402</b> HTTP payment protocol
+        (testnet USDC on Base Sepolia), then synthesizes everything it purchased into a single
+        answer — all inside a strict budget, with every payment logged for audit.
+      </div>
+      <div class="np-tag" style="margin-top:12px;">Payments run in mock mode: the full
+        402 &rarr; pay &rarr; verify handshake is simulated locally, so nothing costs real money.</div>
+    </div>
 
-with col_b:
-    st.markdown('<div class="np-eyebrow">This session</div>', unsafe_allow_html=True)
-    total = sum(h["cost"] for h in st.session_state.history)
-    st.markdown(f"""
-    <div class="np-card np-stat">
-      <div class="v">${total:.4f}</div><div class="l">spent this session</div>
-      <div style="height:10px;"></div>
-      <div class="v">{len(st.session_state.history)}</div><div class="l">queries run</div>
-    </div>""", unsafe_allow_html=True)
+    <div class="np-card">
+      <div class="np-eyebrow">What it does &middot; the flow</div>
+      <div class="np-chips">
+        <span class="np-pill"><span class="np-dot"></span>1 &middot; Plan &mdash; LLM picks sources</span>
+        <span class="np-pill"><span class="np-dot"></span>2 &middot; Budget &mdash; caps enforced first</span>
+        <span class="np-pill"><span class="np-dot"></span>3 &middot; Pay &mdash; x402 per call</span>
+        <span class="np-pill"><span class="np-dot"></span>4 &middot; Synthesize &mdash; one answer</span>
+      </div>
+    </div>
+
+    <div class="np-card">
+      <div class="np-eyebrow">Reading the interface</div>
+      <ul style="color:var(--fg); line-height:1.9; margin:0; padding-left:18px;">
+        <li><b>Mission Control</b> (left sidebar) &mdash; the budget gauge shows today's spend against
+            the daily cap (it turns red past 80%). Spend controls set the max spend for a query and can
+            force specific sources. The catalog lists every source and its price.</li>
+        <li><b>Ask the agent</b> &mdash; type a question or tap an example chip, then <b>Run agent</b>.</li>
+        <li><b>Pipeline stepper</b> &mdash; the live stages: planning &rarr; budget &rarr; paying &rarr; synthesizing.</li>
+        <li><b>x402 settlements</b> &mdash; one card per source.
+            <span style="color:var(--accent);">Green</span> = paid (with its txn hash),
+            <span style="color:var(--warn);">amber</span> = skipped by the budget guard,
+            <span style="color:var(--danger);">red</span> = payment failed.</li>
+        <li><b>Answer</b> &mdash; the synthesized response with its status and total cost.</li>
+        <li><b>Spend log &amp; session stats</b> &mdash; every settlement and your running session total.</li>
+      </ul>
+    </div>
+
+    <div class="np-card">
+      <div class="np-eyebrow">Built by</div>
+      <div style="font-size:16px; color:var(--fg);"><b>Devansh Singh</b></div>
+      <div class="np-tag">Open source &middot; contributions and feedback are welcome.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="np-eyebrow">Help &amp; feedback</div>', unsafe_allow_html=True)
+    st.markdown('<div class="np-tag" style="margin-bottom:10px;">Found a bug or have an idea? '
+                'Open the repository and raise an issue.</div>', unsafe_allow_html=True)
+    b1, b2 = st.columns(2)
+    b1.link_button("◢  View on GitHub", GITHUB_URL, width="stretch")
+    b2.link_button("Raise an issue", ISSUES_URL, width="stretch")
