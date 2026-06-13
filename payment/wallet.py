@@ -4,9 +4,12 @@ Never hardcode keys — the key comes from settings (which loads .env).
 In mock mode a real key is not required.
 """
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from config.settings import settings
+
+if TYPE_CHECKING:
+    from eth_account.signers.local import LocalAccount
 
 
 class Wallet:
@@ -36,7 +39,7 @@ class Wallet:
         return self._address or "0xMOCK000000000000000000000000000000000000"
 
     @property
-    def account(self):
+    def account(self) -> 'Optional[LocalAccount]':
         """The underlying eth-account object, or None in mock mode."""
         return self._account
 

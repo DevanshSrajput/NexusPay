@@ -5,6 +5,7 @@ venv/
 
 # Secrets
 .env
+.streamlit/secrets.toml
 
 # Python
 __pycache__/
@@ -15,6 +16,9 @@ __pycache__/
 # Database
 *.db
 nexuspay.db
+
+# Issues
+ISSUES.md
 
 # OS
 .DS_Store
