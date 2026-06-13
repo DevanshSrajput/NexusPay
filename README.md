@@ -12,6 +12,8 @@
 
 ### 📖 [Browse the full documentation site →](https://nexuspay.devanshsingh.dev/)
 
+### 🎥 [Watch the project walkthrough on YouTube →](https://youtu.be/OVumH89H-ew)
+
 </div>
 
 ---
