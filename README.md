@@ -98,7 +98,22 @@ GEMINI_API_KEY=your-key-here
 > Without a key, the agent still runs end-to-end: the planner falls back to
 > keyword/tag matching and the synthesizer returns a structured data summary.
 
-### Run it
+### Run the web UI (recommended)
+
+A dark, animated **Streamlit** control center — type a query and watch the agent
+plan, pay each source over x402, and synthesize the answer in real time, with a
+live budget gauge and spend log.
+
+```bash
+make ui            # → http://localhost:8501
+```
+
+The UI is self-contained: it starts the mock data server in a background thread
+and runs the agent pipeline in-process, so there's nothing else to launch. It
+also deploys as-is to **Streamlit Cloud** (point it at `streamlit_app.py` and add
+`GEMINI_API_KEY` under app *Secrets*).
+
+### Or run the API directly
 
 ```bash
 make data-server   # terminal 1 → mock data on :8001
@@ -185,6 +200,7 @@ make test
 | Layer            | Choice                                  |
 |------------------|-----------------------------------------|
 | Web framework    | FastAPI (async)                         |
+| Web UI           | Streamlit (dark, animated control center) |
 | HTTP client      | httpx                                   |
 | LLM              | Google Gemini (`google-genai`)          |
 | Payments         | x402 protocol + `eth-account` signing   |

@@ -460,6 +460,49 @@ Pydantic models that define and validate the HTTP contract:
 
 ---
 
+### `agent/pipeline.py` — the reusable, staged flow
+
+Exposes the query flow as discrete awaitable stages — `plan_stage()`,
+`execute_stage()`, `synthesize_stage()`, plus `budget_snapshot()` and
+`new_query_id()` — so a non-HTTP caller (the Streamlit UI) can render each stage
+as it happens. It records the same `queries` rows and status transitions the API
+does. `agent/main.py` keeps its own thin HTTP glue; this module is the shared
+core for the UI.
+
+> **Reasoning:** the UI wants to show planning, paying, and synthesizing as
+> separate animated steps. Splitting the flow into stages here keeps that logic
+> out of the view layer and reusable.
+
+---
+
+### `streamlit_app.py` — the web UI
+
+A single-process Streamlit "control center" (dark OLED theme, Fira Code/Sans,
+green accent, custom-CSS animations):
+
+- **`bootstrap()`** (`@st.cache_resource`) — starts the mock data server in a
+  **daemon thread** and runs `init_db()` exactly once. This is what makes the
+  whole app deployable as a single process (e.g. Streamlit Cloud): the buyer
+  (agent flow, in-process) and seller (data server, background thread) coexist,
+  and x402 calls go over real HTTP to `127.0.0.1:8001`.
+- **`_run_async()`** — runs the pipeline's coroutines from Streamlit's sync
+  context.
+- **Secrets bridge** — copies `st.secrets` into `os.environ` *before* importing
+  `settings`, so the same code reads `.env` locally and Streamlit Cloud secrets
+  in the cloud.
+- The view drives `agent/pipeline.py` stage by stage, animating the plan, each
+  x402 settlement (with its txn hash), and the final answer, alongside a live
+  budget gauge and the spend log.
+
+`.streamlit/config.toml` carries the matching dark theme.
+
+> **Reasoning:** running the data server in a thread (rather than requiring a
+> second deployed service) is the key trick that lets the two-server x402
+> architecture deploy as one Streamlit app while keeping the payment boundary a
+> real HTTP hop.
+
+---
+
 ## 6. The algorithms
 
 ### 6.1 Source selection (planning)
