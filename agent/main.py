@@ -126,7 +126,7 @@ async def query(req: QueryRequest):
             endpoint=_path(r.endpoint),
             cost_usdc=r.cost_usdc,
             txn_hash=r.txn_hash,
-            data_preview=(_preview(r) ),
+            data_preview=_preview(r),
             success=r.success,
         )
         for r in outcome.results
@@ -143,7 +143,7 @@ async def query(req: QueryRequest):
     if successful and len(successful) < len(plan.sources):
         status = "partial"
 
-    await update_query(query_id, status=status if status != "partial" else "complete",
+    await update_query(query_id, status=status,
                        final_answer=synthesis.answer,
                        completed_at=None)
 
@@ -172,6 +172,7 @@ async def logs():
             cost_usdc=r["cost_usdc"],
             txn_hash=r["txn_hash"],
             success=bool(r["success"]),
+            error_message=r["error_message"],
             data_preview=r["data_preview"],
             created_at=r["created_at"],
         )

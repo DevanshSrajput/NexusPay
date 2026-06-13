@@ -52,6 +52,7 @@ class SpendLog(BaseModel):
     cost_usdc: float
     txn_hash: Optional[str] = None
     success: bool
+    error_message: Optional[str] = None
     data_preview: Optional[str] = None
     created_at: str
 
