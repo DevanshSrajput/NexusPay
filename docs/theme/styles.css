@@ -184,6 +184,15 @@ img { max-width: 100%; height: auto; }
 .doc blockquote p { margin: .6em 0; }
 .doc hr { border: none; border-top: 1px solid var(--border); margin: 2.4em 0; }
 
+/* centered hero block from source README (<div align="center">) */
+.doc .md-center { text-align: center; margin: 0 0 1.5em; }
+.doc .md-center h1, .doc .md-center h2, .doc .md-center h3 { border: none; padding: 0; }
+.doc .md-center h1 { font-size: 2.4rem; }
+.doc .md-center h3 { color: var(--fg-dim); font-weight: 500; }
+.doc .md-center p { margin: .6em auto; max-width: none; }
+.doc .md-center img { display: inline-block; margin: 3px; vertical-align: middle; }
+.doc .md-center a { text-decoration: none; }
+
 /* heading anchor link */
 .doc .headerlink { opacity: 0; margin-left: .35em; color: var(--fg-faint); font-weight: 400; transition: opacity .15s; }
 .doc h2:hover .headerlink, .doc h3:hover .headerlink { opacity: 1; }

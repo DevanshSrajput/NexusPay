@@ -82,6 +82,17 @@ def first_para_desc(html_body: str, fallback: str) -> str:
     return text or fallback
 
 
+def preprocess_md(src: str) -> str:
+    """Let Markdown render inside centered wrapper divs.
+
+    READMEs often wrap a hero in `<div align="center">`; without `markdown="1"`
+    the `md_in_html` extension passes the inner heading/badges through as literal
+    text. Convert those to a centered class that opts into Markdown parsing.
+    """
+    return re.sub(r'<div\s+align="center"\s*>',
+                  '<div class="md-center" markdown="1">', src)
+
+
 def rewrite_links(body: str, r: str) -> str:
     """Rewrite source-relative Markdown links for the built site.
 
@@ -352,7 +363,7 @@ def build():
     for page in PAGES:
         if page["kind"] != "doc":
             continue
-        src = (ROOT / page["src"]).read_text()
+        src = preprocess_md((ROOT / page["src"]).read_text())
         md = md_engine()
         body = md.convert(src)
         body = rewrite_links(body, relroot(page["out"].count("/")))
