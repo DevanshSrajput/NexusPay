@@ -13,9 +13,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Anthropic
-    anthropic_api_key: str = ""
-    claude_model: str = "claude-sonnet-4-6"
+    # LLM (Google Gemini)
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.5-flash"
 
     # x402 wallet (testnet only — never hardcode real keys)
     agent_private_key: str = ""

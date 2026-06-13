@@ -1,6 +1,6 @@
 """LLM planner: turns a natural-language query into a purchase plan.
 
-Claude is given the query and the source registry and must return JSON naming
+Gemini is given the query and the source registry and must return JSON naming
 which sources to buy. The output is validated with Pydantic before use because
 LLMs can emit malformed or hallucinated JSON. One retry is attempted, then a
 deterministic keyword fallback keeps the agent functional without a working
@@ -105,28 +105,31 @@ def _keyword_fallback(query: str) -> PlannerOutput:
     )
 
 
-async def _call_claude(query: str) -> PlannerOutput:
-    from anthropic import AsyncAnthropic
+async def _call_gemini(query: str) -> PlannerOutput:
+    from google import genai
+    from google.genai import types
 
-    client = AsyncAnthropic(api_key=settings.anthropic_api_key)
+    client = genai.Client(api_key=settings.gemini_api_key)
     user_msg = (
         f"Available data sources:\n{_registry_for_prompt()}\n\n"
         f"User query: {query}\n\nReturn the JSON plan."
+    )
+    config = types.GenerateContentConfig(
+        system_instruction=_SYSTEM_PROMPT,
+        max_output_tokens=512,
+        temperature=0.2,
+        response_mime_type="application/json",
     )
 
     last_error: Exception | None = None
     for _ in range(2):  # initial try + one retry
         try:
-            resp = await client.messages.create(
-                model=settings.claude_model,
-                max_tokens=512,
-                system=_SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_msg}],
+            resp = await client.aio.models.generate_content(
+                model=settings.gemini_model,
+                contents=user_msg,
+                config=config,
             )
-            text = "".join(
-                block.text for block in resp.content if block.type == "text"
-            )
-            return PlannerOutput(**_extract_json(text))
+            return PlannerOutput(**_extract_json(resp.text or ""))
         except (ValueError, ValidationError, json.JSONDecodeError) as exc:
             last_error = exc
             continue
@@ -145,9 +148,9 @@ async def plan_purchase(query_id: str, query: str, forced_sources: list[str] | N
             sources=valid or forced_sources,
             estimated_cost=_recompute_cost(valid),
         )
-    elif settings.anthropic_api_key:
+    elif settings.gemini_api_key:
         try:
-            output = await _call_claude(query)
+            output = await _call_gemini(query)
         except Exception:
             output = _keyword_fallback(query)
     else:

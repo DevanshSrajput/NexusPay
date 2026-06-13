@@ -1,4 +1,4 @@
-"""Synthesizer: turns purchased data into a final answer via Claude.
+"""Synthesizer: turns purchased data into a final answer via Gemini.
 
 Falls back to a deterministic summary when no API key is configured so the
 end-to-end flow still produces output.
@@ -43,26 +43,30 @@ async def synthesize(query: str, collected: list[dict]) -> Synthesis:
     if not collected:
         return _fallback(query, collected)
 
-    if not settings.anthropic_api_key:
+    if not settings.gemini_api_key:
         return _fallback(query, collected)
 
     try:
-        from anthropic import AsyncAnthropic
+        from google import genai
+        from google.genai import types
 
-        client = AsyncAnthropic(api_key=settings.anthropic_api_key)
+        client = genai.Client(api_key=settings.gemini_api_key)
         data_block = json.dumps(collected, indent=2)
         user_msg = (
             f"User query: {query}\n\n"
             f"Purchased data (JSON):\n{data_block}\n\n"
             "Write the answer now."
         )
-        resp = await client.messages.create(
-            model=settings.claude_model,
-            max_tokens=1024,
-            system=_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_msg}],
+        resp = await client.aio.models.generate_content(
+            model=settings.gemini_model,
+            contents=user_msg,
+            config=types.GenerateContentConfig(
+                system_instruction=_SYSTEM_PROMPT,
+                max_output_tokens=1024,
+                temperature=0.3,
+            ),
         )
-        answer = "".join(b.text for b in resp.content if b.type == "text").strip()
+        answer = (resp.text or "").strip()
         return Synthesis(
             answer=answer or _fallback(query, collected).answer,
             key_sources=[c["source_id"] for c in collected],

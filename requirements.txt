@@ -7,8 +7,8 @@ pydantic-settings>=2.5.0
 python-dotenv>=1.0.0
 aiosqlite>=0.20.0
 
-# LLM
-anthropic>=0.40.0
+# LLM (Google Gemini)
+google-genai>=1.0.0
 
 # x402 payment signing (EIP-3009 authorization).
 # The x402 protocol flow is implemented directly against the facilitator;
