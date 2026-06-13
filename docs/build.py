@@ -53,6 +53,7 @@ IC = {
     "list": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
     "arrow": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
     "book": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
+    "chev": '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
 }
 
 
@@ -203,11 +204,22 @@ def sidebar(depth, active_slug, doc_sections):
     items = ""
     for p in PAGES:
         href = r + p["out"]
-        cls = " class=\"active\"" if p["slug"] == active_slug else ""
-        items += f'<a href="{href}"{cls}>{p["nav"]}</a>'
+        is_active = p["slug"] == active_slug
         if p["slug"] == "documentation" and doc_sections:
-            for _lvl, sid, name in doc_sections:
-                items += f'<a class="sub" href="{r}documentation/index.html#{sid}">{html.escape(name)}</a>'
+            # Collapsible group: the on-this-page list reveals on click / when active.
+            subs = "".join(
+                f'<a class="sub" href="{r}documentation/index.html#{sid}">{html.escape(name)}</a>'
+                for _lvl, sid, name in doc_sections)
+            toggle_cls = "group-toggle active" if is_active else "group-toggle"
+            open_cls = " open" if is_active else ""
+            items += (
+                f'<div class="nav-group{open_cls}">'
+                f'<a class="{toggle_cls}" href="{href}">{p["nav"]}{IC["chev"]}</a>'
+                f'<div class="group-items"><div>{subs}</div></div>'
+                f'</div>')
+        else:
+            cls = ' class="active"' if is_active else ""
+            items += f'<a href="{href}"{cls}>{p["nav"]}</a>'
     return f"""<aside class="sidebar" aria-label="Docs navigation">
     <h4>Navigation</h4>
     <nav>{items}</nav>

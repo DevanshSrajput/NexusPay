@@ -119,8 +119,16 @@
       if (a.getAttribute("href").indexOf("#") === 0) return;
       var there = u.pathname.replace(/index\.html$/, "").replace(/\/$/, "");
       var match = there === here;
-      a.classList.toggle("active", match && a.closest(".sidebar"));
+      a.classList.toggle("active", match && !!a.closest(".sidebar"));
       if (a.closest(".topnav")) { if (match) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); }
+    });
+    // keep the active collapsible group open
+    document.querySelectorAll(".nav-group").forEach(function (g) {
+      var link = g.querySelector(".group-toggle");
+      if (!link) return;
+      var u; try { u = new URL(link.href); } catch (e) { return; }
+      var there = u.pathname.replace(/index\.html$/, "").replace(/\/$/, "");
+      if (there === here) g.classList.add("open");
     });
   }
 
@@ -136,6 +144,14 @@
     // SPA link interception
     var a = e.target.closest("a");
     if (!a) return;
+
+    // Collapsible "Documentation" group: chevron toggles, label opens + navigates.
+    if (a.classList.contains("group-toggle")) {
+      var group = a.parentElement;
+      if (e.target.closest(".chev")) { e.preventDefault(); group.classList.toggle("open"); return; }
+      group.classList.add("open");
+    }
+
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     if (a.target === "_blank" || a.hasAttribute("download") || a.dataset.noSpa !== undefined) return;
     var href = a.getAttribute("href");
