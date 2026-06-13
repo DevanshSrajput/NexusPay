@@ -28,7 +28,7 @@ OUT = ROOT / "site"
 SITE_TITLE = "NexusPay"
 SITE_DESC = ("Autonomous AI agent that buys the data it needs, pays per call with "
              "the x402 protocol, and synthesizes the answer — budget-aware and auditable.")
-BASE_URL = "https://devanshsrajput.github.io/NexusPay/"
+BASE_URL = "https://nexuspay.devanshsingh.dev/"
 GITHUB_URL = "https://github.com/DevanshSrajput/NexusPay"
 
 PAGES = [
@@ -391,6 +391,13 @@ def build():
     (OUT / "robots.txt").write_text(
         f"User-agent: *\nAllow: /\nSitemap: {BASE_URL}sitemap.xml\n")
     (OUT / ".nojekyll").write_text("")
+
+    # Carry the custom domain into the published artifact so GitHub Pages keeps
+    # it when deploying via Actions. Source of truth: docs/CNAME (or ./CNAME).
+    for cname in (Path(__file__).resolve().parent / "CNAME", ROOT / "CNAME"):
+        if cname.exists():
+            (OUT / "CNAME").write_text(cname.read_text().strip() + "\n")
+            break
 
     print(f"Built {len([p for p in PAGES])} pages → {OUT.relative_to(ROOT)}/")
     for p in PAGES:

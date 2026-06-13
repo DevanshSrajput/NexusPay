@@ -234,7 +234,7 @@ make docs-serve    # build + serve at http://localhost:8899
 It auto-deploys to **GitHub Pages** via `.github/workflows/docs.yml` on every
 push to `main`. One-time setup: in the repo, go to **Settings → Pages → Build
 and deployment → Source: GitHub Actions**. Live site:
-<https://devanshsrajput.github.io/NexusPay/>.
+<https://nexuspay.devanshsingh.dev/>.
 
 ---
 
