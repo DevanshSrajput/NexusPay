@@ -210,10 +210,20 @@ button[kind="primary"]:hover{ box-shadow:0 0 22px rgba(34,197,94,.45) !important
   background:var(--surface) !important; color:var(--fg) !important; transition:all .2s ease !important; }
 [data-testid="stLinkButton"] a:hover{ border-color:var(--accent) !important; transform:translateY(-1px);
   box-shadow:0 6px 18px rgba(0,0,0,.35) !important; }
-.stTabs [data-baseweb="tab-list"]{ gap:6px; border-bottom:1px solid var(--border); }
-.stTabs [data-baseweb="tab"]{ font-family:'Fira Code',monospace; color:var(--fg-dim); }
-.stTabs [aria-selected="true"]{ color:var(--accent) !important; }
-.stTabs [data-baseweb="tab-highlight"]{ background:var(--accent) !important; }
+/* Segmented, clearly-visible section switcher */
+.stTabs [data-baseweb="tab-list"]{ gap:10px; border-bottom:none !important;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:14px;
+  padding:6px; margin-bottom:6px; }
+.stTabs [data-baseweb="tab"]{ font-family:'Fira Code',monospace; font-size:14px; font-weight:600;
+  color:var(--fg-dim); background:transparent; border-radius:10px; padding:10px 20px;
+  flex:1; justify-content:center; transition:all .2s ease; }
+.stTabs [data-baseweb="tab"]:hover{ color:var(--fg); background:rgba(34,197,94,.08); }
+.stTabs [aria-selected="true"]{ color:#05210f !important;
+  background:linear-gradient(90deg,var(--accent),var(--accent-dim)) !important;
+  box-shadow:0 0 18px rgba(34,197,94,.35); }
+.stTabs [data-baseweb="tab-highlight"]{ display:none !important; }
+.stTabs [data-baseweb="tab-border"]{ display:none !important; }
+.stTabs [data-baseweb="tab-panel"]{ padding-top:14px; }
 section[data-testid="stSidebar"]{ background:linear-gradient(180deg,#111B2E,#0C1424); border-right:1px solid var(--border); }
 [data-testid="stMetricValue"]{ font-family:'Fira Code',monospace !important; }
 .stDataFrame{ border-radius:12px; overflow:hidden; }
