@@ -14,7 +14,9 @@
 
 ### 🎥 [Watch the project walkthrough on YouTube →](https://youtu.be/OVumH89H-ew)
 
-[![NexusPay project walkthrough](docs/assets/video-thumbnail.png)](https://youtu.be/OVumH89H-ew)
+<a href="https://youtu.be/OVumH89H-ew">
+  <img src="docs/assets/video-thumbnail.png" alt="NexusPay project walkthrough" width="480">
+</a>
 
 </div>
 
