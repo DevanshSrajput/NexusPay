@@ -1,4 +1,4 @@
-.PHONY: install data-server agent run demo test clean
+.PHONY: install data-server agent run ui demo test clean
 
 VENV := venv
 PY := $(VENV)/bin/python
@@ -13,6 +13,10 @@ data-server:
 
 agent:
 	$(UVICORN) agent.main:app --port 8000 --reload
+
+# Web UI — runs the data server in a background thread, no separate process needed.
+ui:
+	$(VENV)/bin/streamlit run streamlit_app.py
 
 # Start both servers in the background for a quick demo.
 run:
