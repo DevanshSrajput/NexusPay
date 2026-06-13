@@ -6,9 +6,10 @@ as it happens (plan → budget → execute → synthesize). The FastAPI server
 non-HTTP callers.
 """
 
+import json
 import secrets
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 from agent.budget import budget_manager
@@ -108,7 +109,9 @@ async def plan_stage(
 async def execute_stage(plan: PurchasePlan) -> ExecutionOutcome:
     outcome = await execute_plan(plan)
     await update_query(plan.query_id, status="synthesizing",
-                       actual_cost=outcome.total_cost)
+                       actual_cost=outcome.total_cost,
+                       sources_used=json.dumps(
+                           [c["source_id"] for c in outcome.collected_data]))
     return outcome
 
 
@@ -120,8 +123,7 @@ async def synthesize_stage(
     status = "complete" if successful else "failed"
     if successful and len(successful) < source_count:
         status = "partial"
-    await update_query(query_id, status="complete" if status != "failed" else "failed",
-                       final_answer=synthesis.answer)
+    await update_query(query_id, status=status, final_answer=synthesis.answer)
     return synthesis, status
 
 
