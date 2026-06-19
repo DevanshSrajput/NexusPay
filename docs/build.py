@@ -30,6 +30,7 @@ SITE_DESC = ("Autonomous AI agent that buys the data it needs, pays per call wit
              "the x402 protocol, and synthesizes the answer — budget-aware and auditable.")
 BASE_URL = "https://nexuspay.devanshsingh.dev/"
 GITHUB_URL = "https://github.com/DevanshSrajput/NexusPay"
+OAS_URL = "https://openagentsource.com/agents/nexuspay"
 
 PAGES = [
     {"slug": "", "out": "index.html", "kind": "home", "nav": "Home", "title": SITE_TITLE},
@@ -54,6 +55,9 @@ IC = {
     "arrow": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
     "book": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
     "chev": '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+    "user": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    "shield-check": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>',
+    "columns": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2M6 12h2M10 12h2M14 12h2M18 12h2M22 12h2"/><path d="M7 3v18M17 3v18"/></svg>',
 }
 
 
@@ -243,7 +247,7 @@ def footer():
     return f"""<footer class="footer">
   <div class="inner">
     <span class="built">Built by <b>Devansh Singh</b> · static HTML for SEO · SPA for speed · AI-ready by default</span>
-    <span><a href="{GITHUB_URL}" target="_blank" rel="noopener" data-no-spa>GitHub</a> · <a href="{R}llms.txt" data-no-spa>llms.txt</a></span>
+    <span><a href="{GITHUB_URL}" target="_blank" rel="noopener" data-no-spa>GitHub</a> · <a href="{R}llms.txt" data-no-spa>llms.txt</a> · <a href="{OAS_URL}" target="_blank" rel="noopener" data-no-spa>OpenAgentSource</a></span>
   </div>
 </footer>
 <div class="sidebar-scrim"></div>
@@ -330,6 +334,18 @@ HOME_HTML = f"""<div class="landing">
       <div class="step"><h4>Pay</h4><p>Each source is paid for over x402: 402 → sign → verify → 200.</p></div>
       <div class="step"><h4>Synthesize</h4><p>The purchased data becomes one coherent answer.</p></div>
       <div class="step"><h4>Log</h4><p>Every settlement lands in the spend log for audit.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-h"><h2>Trust Profile</h2><p>NexusPay is listed on <a href="{OAS_URL}" target="_blank" rel="noopener">OpenAgentSource</a> \u2014 a public registry for agent trust.</p></div>
+    <div class="grid">
+      <div class="card"><span class="ic">{IC['user']}</span><h3>Creator identity</h3><p>Verified creator with linked source repositories and manifest.</p></div>
+      <div class="card"><span class="ic">{IC['shield-check']}</span><h3>Risk rationale</h3><p>Permissions, install method, validation status, and update history are documented and reviewed.</p></div>
+      <div class="card"><span class="ic">{IC['columns']}</span><h3>Community reviews</h3><p>Read reviews and validation reports from the agent community on OpenAgentSource.</p></div>
+    </div>
+    <div style="text-align:center;margin-top:1.5rem">
+      <a class="btn" href="{OAS_URL}" target="_blank" rel="noopener">View trust profile {IC['arrow']}</a>
     </div>
   </section>
 

@@ -8,7 +8,8 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-async-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![x402](https://img.shields.io/badge/x402-pay--per--call-6E56CF)](https://x402.org)
 [![Gemini](https://img.shields.io/badge/LLM-Google%20Gemini-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
-[![Tests](https://img.shields.io/badge/tests-passing-success)](tests/)
+[![Tests](https://img.shields.io/badge/tests-passing-success)](tests/)<br>
+[![Listed on OpenAgentSource](https://openagentsource.com/badges/nexuspay.svg)](https://openagentsource.com/agents/nexuspay)
 
 ### 📖 [Browse the full documentation site →](https://nexuspay.devanshsingh.dev/)
 
@@ -36,6 +37,16 @@ for audit.
 > 💡 **Runs out of the box with fake payments.** By default `MOCK_PAYMENTS=true`
 > simulates the entire `402 → sign → verify → 200` handshake locally, so you can
 > demo the whole thing without a wallet, without funds, and without spending a cent.
+
+---
+## Trust Profile
+
+This project is listed on OpenAgentSource.
+
+OpenAgentSource provides a public trust profile with creator identity, source/manifest links, install method, permissions, risk rationale, validation status, reviews, and update history.
+
+View the trust profile:
+https://openagentsource.com/agents/nexuspay
 
 ---
 
